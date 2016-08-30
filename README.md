@@ -8,9 +8,9 @@ The server is responsible for the keypair generation, not RSA,but an identificat
 
 ### Installation
 ```
+go get -v github.com/mauri870/ransomware
 git clone https://github.com/mauri870/ransomware.git
 cd ransomware
-go get ./...
 ```
 
 ### Building the binaries

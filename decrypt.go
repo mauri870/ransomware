@@ -37,7 +37,10 @@ func decryptFiles(key string) {
 
 	for _, path := range MatchedFiles {
 		log.Printf("Decrypting %s...\n", path)
-		ciphertext, _ := ioutil.ReadFile(path)
+		ciphertext, err := ioutil.ReadFile(path)
+		if err != nil {
+			log.Fatalln("Error opening %s\n", path)
+		}
 
 		text, err := crypto.Decrypt([]byte(key), ciphertext)
 		if err != nil {

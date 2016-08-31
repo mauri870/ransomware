@@ -6,4 +6,4 @@ endif
 
 default:
 	$(BUILD)
-	cd server && $(BUILD) && cp ./server.exe ../
+	cd server && $(BUILD) && mv ./server.exe ../

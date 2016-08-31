@@ -16,18 +16,11 @@ cd ransomware
 ### Building the binaries
 > DON'T RUN ANY BINARY IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 
-We need build the server and the malware as follows, `only` for windows:
+We need build the server and the malware as follows, generating binaries `only` for windows:
 ```
-cd ransomware
-go build
-cd server/
-go build
+make
 ```
-If you have a darwin/linux machine, set the GOOS env to windows during build:
-```
-env GOOS=windows go build
-```
-After that, a binary called `ransomware.exe` will be generated on root and a `server.exe` will be generated inside server folder
+After that, a binary called `ransomware.exe` and a `server.exe` will be generated on root
 
 > DON'T RUN ANY BINARY IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 

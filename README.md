@@ -2,7 +2,7 @@
 
 > Note: This project is purely academic, use at your own risk. I do not encourage in any way the use of this software illegally or to attack targets without their previous authorization
 
-I'm not a security analist so do not expect something perfect, but any help will be apreciated. This project is composed of two main parts for now, the server and the malware itself
+I'm not a security analyst so do not expect something perfect, but any help will be apreciated. This project is composed of two main parts for now, the server and the malware itself
 
 The server is responsible for the keypair generation, not RSA,but an identification key and an encryption key that is kept safe on the server, granting a way to recover the encryption key in the future (I plan to change this system to a pair of RSA-2048 keys)
 
@@ -33,9 +33,7 @@ After that, a binary called `ransomware.exe` will be generated on root and a `se
 
 ## Usage and How it Works
 Feel free to edit the parameters across the files for testing.
-By default, it will walk trought the current authenticated user folder, reading all files matching certain extensions and encrypting then using AES-256-CBC with an encryption key returned from server.
-
-After put the binaries on a correct windows test environment, start the server by double click or run then on the terminal.
+Put the binaries on a correct windows test environment, start the server by double click or run then on the terminal.
 It will wait for the malware contact and generate/persist the id/encryption keypairs
 
 When double click on `ransomware.exe` binary it will walk interesting directories and encrypting all files that match the interesting file extensions, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.txt file on desktop

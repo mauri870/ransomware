@@ -29,7 +29,7 @@ Feel free to edit the parameters across the files for testing.
 Put the binaries on a correct windows test environment, start the server by double click or run then on the terminal.
 It will wait for the malware contact and generate/persist the id/encryption keypairs
 
-When double click on `ransomware.exe` binary it will walk interesting directories and encrypting all files that match the interesting file extensions, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.txt file on desktop
+When double click on `ransomware.exe` binary it will walk interesting directories and encrypting all files that match the interesting file extensions using AES-256-CFB, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.txt file on desktop
 
 In theory, for decrypt your files you need send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly will return your encryption key and you can use then to recover your files. This exchange can be accomplished in several ways(Possibly use an RSA algorithm will change this order).
 

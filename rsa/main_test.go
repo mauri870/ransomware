@@ -1,6 +1,7 @@
 package rsa
 
 import (
+	"strconv"
 	"testing"
 )
 
@@ -62,5 +63,12 @@ func TestEncryptDecryptRSA(t *testing.T) {
 		if string(decryptedText) != phrase {
 			t.Errorf("Expected %s but got %s", phrase, string(decryptedText))
 		}
+	}
+}
+
+func BenchmarkEncryptDecryptRSA(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		ciphertext, _ := Encrypt(PUB_KEY, []byte("bench"+strconv.Itoa(n)))
+		Decrypt(PRIV_KEY, ciphertext)
 	}
 }

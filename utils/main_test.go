@@ -5,8 +5,6 @@ import (
 	"testing"
 )
 
-var ()
-
 type Test struct {
 	slice []string
 	word  string

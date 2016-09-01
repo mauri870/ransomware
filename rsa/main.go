@@ -52,7 +52,7 @@ func Decrypt(privateKey []byte, ciphertext []byte) ([]byte, error) {
 	// Decrypt the data
 	out, err = rsa.DecryptOAEP(sha1.New(), rand.Reader, priv, ciphertext, []byte(""))
 	if err != nil {
-		return []byte{}, nil
+		return []byte{}, err
 	}
 
 	return out, nil

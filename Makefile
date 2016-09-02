@@ -5,6 +5,6 @@ else
 endif
 
 default:
-	mkdir build
+	mkdir -p build
 	$(BUILD) && mv `ls|grep ransomware` build
 	cd server && go build && mv `ls|grep server` ../build

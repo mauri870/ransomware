@@ -17,6 +17,9 @@ var (
 	ApiResponseDuplicatedId     = `{"status": 409, "message": "Duplicated Id"}`
 	ApiResponseBadRSAEncryption = `{"status": 422, "message": "Error validating payload, bad public key"}`
 	ApiResponseNoPayload        = `{"status": 422, "message": "No payload"}`
+
+	// RSA Private key
+	PRIV_KEY = []byte(``)
 )
 
 func main() {

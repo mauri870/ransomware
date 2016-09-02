@@ -17,6 +17,8 @@ import (
 )
 
 var (
+	// RSA Public key
+	PUB_KEY          = []byte(``)
 	SecondsToTimeout = 5.0
 )
 

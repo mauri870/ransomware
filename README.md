@@ -4,7 +4,13 @@
 
 **Do not criticize me because I'm sharing a malware, the intent here is to disseminate and teach more about security in the actual world. Remember, security is always a double-edged sword**
 
-This project is composed of two main parts, the server and the malware itself.
+### What is Ransomware?
+Ransomware is a type of malware that prevents or limits users from accessing their system, either by locking the system's screen or by locking the users' files unless a ransom is paid. More modern ransomware families, collectively categorized as crypto-ransomware, encrypt certain file types on infected systems and forces users to pay the ransom through certain online payment methods to get a decrypt key.
+
+### Project Summary
+This project aims to build a "non hidden" ransomware written in Go. Basically, it will encrypt your files using AES-256-CFB, a strong encryption algorithm, using RSA-2048 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
+
+It is composed of two main parts, the server and the malware itself.
 
 The server is responsible for store the Id and the respective encryption key, received from the malware binary during execution.
 

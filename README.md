@@ -24,7 +24,7 @@ cd ransomware
 ```
 
 ### Building the binaries
-> DON'T RUN ANY BINARY IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
+> DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 
 Build a new RSA-2048 keypair:
 ```
@@ -39,11 +39,13 @@ We need build the server and the malware as follows, generating the binaries, th
 ```
 make
 ```
+The execution of `ransomware.exe` is locked to windows machines only.
+
 After that, a binary called `ransomware.exe` and a `server.exe` will be generated on the build folder
 
 By default, the server will listen on `localhost:8080`
 
-> DON'T RUN ANY BINARY IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
+> DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 
 ## Usage and How it Works
 Feel free to edit the parameters across the files for testing.

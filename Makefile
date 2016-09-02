@@ -5,5 +5,6 @@ else
 endif
 
 default:
-	$(BUILD)
-	cd server && $(BUILD) && mv ./server.exe ../
+	mkdir build
+	$(BUILD) && mv `ls|grep ransomware` build
+	cd server && go build && mv `ls|grep server` ../build

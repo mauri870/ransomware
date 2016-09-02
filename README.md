@@ -54,7 +54,7 @@ It will wait for the malware contact and persist the id/encryption keys
 
 When double click on `ransomware.exe` binary it will walk interesting directories and encrypting all files that match the interesting file extensions using AES-256-CFB, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.html file on desktop
 
-In theory, for decrypt your files you need send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly will return your encryption key and you can use then to recover your files. This exchange can be accomplished in several ways(Possibly use an RSA algorithm will change this order).
+In theory, for decrypt your files you need send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly will return your encryption key and you can use then to recover your files. This exchange can be accomplished in several ways.
 
 Let's suppose you get your encryption key back (for testing it is on the file on desktop) you can use then on a terminal:
 ```

@@ -54,7 +54,6 @@ func TestEncryptDecryptRSA(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-
 		decryptedText, err := Decrypt(PRIV_KEY, ciphertext)
 		if err != nil {
 			t.Error(err)

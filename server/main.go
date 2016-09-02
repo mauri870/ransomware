@@ -12,14 +12,17 @@ const (
 )
 
 var (
-	ApiResponseForbidden = `{"status": 403, "message": "Seems like you are not welcome here... Bye"}`
-	ApiResponseIdEncKey  = `{"id": "%s", "enckey": "%s"}`
+	ApiResponseForbidden        = `{"status": 403, "message": "Seems like you are not welcome here... Bye"}`
+	ApiResponseBadJson          = `{"status": 400, "message": "Expect valid json payload"}`
+	ApiResponseDuplicatedId     = `{"status": 409, "message": "Duplicated Id"}`
+	ApiResponseBadRSAEncryption = `{"status": 422, "message": "Error validating payload, bad public key"}`
+	ApiResponseNoPayload        = `{"status": 422, "message": "No payload"}`
 )
 
 func main() {
 	router := httprouter.New()
 
-	router.GET("/api/generatekeypair", generateKeyPair)
+	router.POST("/api/keys/add", validateAndPersistKeys)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

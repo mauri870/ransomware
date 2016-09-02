@@ -35,6 +35,7 @@ func main() {
 
 		// Wait for enter to exit
 		var s string
+		fmt.Println("Press enter to quit")
 		fmt.Scanf("%s", &s)
 		return
 	}

@@ -8,7 +8,7 @@
 Ransomware is a type of malware that prevents or limits users from accessing their system, either by locking the system's screen or by locking the users' files unless a ransom is paid. More modern ransomware families, collectively categorized as crypto-ransomware, encrypt certain file types on infected systems and forces users to pay the ransom through certain online payment methods to get a decrypt key.
 
 ### Project Summary
-This project aims to build a "non hidden" ransomware written in Go. Basically, it will encrypt your files using AES-256-CFB, a strong encryption algorithm, using RSA-2048 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
+This project aims to build a "non hidden" crypto-ransomware written in Go. Basically, it will encrypt your files using AES-256-CFB, a strong encryption algorithm, using RSA-2048 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
 
 It is composed of two main parts, the server and the malware itself.
 

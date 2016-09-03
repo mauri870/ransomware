@@ -26,11 +26,13 @@ cd ransomware
 ### Building the binaries
 > DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 
-Build a new RSA-2048 keypair:
+Create a new RSA-2048 keypair:
 ```
 openssl genrsa -out private.pem 2048
 openssl rsa -in private.pem -outform PEM -pubout -out public.pem
 ```
+> Keys protected with password is not supported
+
 After that, a `private.pem` and `public.pem` will be created.
 Copy the content of private.pem to `PRIV_KEY` on `server/main.go` and the public.pem content to `PUB_KEY` on `encrypt.go`.
 Remember to put the content inside the []byte() conversion
@@ -63,3 +65,6 @@ ransomware.exe decrypt yourencryptionkeyhere
 And that's it, got your files back :smile:
 
 As you can see, building a functional ransomware, with some of the best existing algorithms is not dificult, anyone with programming and security skills can build that.
+
+#### Todo:
+- [ ] Verify with server the encryption key autenticity before try decrypt files (now bad keys will decrypt files with broken contente irretrievably)

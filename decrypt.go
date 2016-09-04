@@ -58,10 +58,18 @@ func decryptFiles(key string) {
 		}
 
 		// Write a new file with the decrypted content
-		ioutil.WriteFile(path[0:len(path)-len(filepath.Ext(path))], text, 0600)
+		err = ioutil.WriteFile(path[0:len(path)-len(filepath.Ext(path))], text, 0600)
+		if err != nil {
+			// In case of error, continue to the next file
+			log.Println(err)
+			continue
+		}
 
 		// Remove the encrypted file
 		os.Remove(path)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 	if len(MatchedFiles) == 0 {

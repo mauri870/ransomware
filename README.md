@@ -18,6 +18,7 @@ The malware encrypt with your RSA-2048 public key a payload containing the id/en
 
 ### Installation
 ```
+go get -v github.com/akavel/rsrc
 go get -v github.com/mauri870/ransomware
 git clone https://github.com/mauri870/ransomware.git
 cd ransomware
@@ -41,9 +42,9 @@ We need build the server and the malware as follows, generating the binaries, th
 ```
 make
 ```
-The execution of `ransomware.exe` is locked to windows machines only.
+If you like build the server for windows from a unix machine, run `env GOOS=windows make`
 
-After that, a binary called `ransomware.exe` and a `server.exe` will be generated on the build folder
+After that, a binary called `ransomware.exe` and a `server.exe` will be generated on the build folder. The execution of `ransomware.exe` is locked to windows machines only.
 
 By default, the server will listen on `localhost:8080`
 

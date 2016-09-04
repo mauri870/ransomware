@@ -65,6 +65,3 @@ ransomware.exe decrypt yourencryptionkeyhere
 And that's it, got your files back :smile:
 
 As you can see, building a functional ransomware, with some of the best existing algorithms is not dificult, anyone with programming and security skills can build that.
-
-#### Todo:
-- [ ] Verify with server the encryption key autenticity before try decrypt files (now bad keys will decrypt files with broken contente irretrievably)

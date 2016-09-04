@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -16,24 +15,23 @@ func validateAndPersistKeys(w http.ResponseWriter, r *http.Request, ps httproute
 
 	r.ParseForm()
 
-	if r.FormValue("payload") == "" {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprint(w, ApiResponseNoPayload)
+	// Check if payload parameter exists
+	if _, ok := r.Form["payload"]; !ok {
+		http.Error(w, ApiResponseNoPayload, http.StatusUnprocessableEntity)
 		return
 	}
 
 	// Decode the hex string to []byte
 	payload, err := hex.DecodeString(r.FormValue("payload"))
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, ApiResponseBadRequest, http.StatusBadRequest)
 		return
 	}
 
 	// Decrypt the payload
 	jsonPayload, err := rsa.Decrypt(PRIV_KEY, payload)
 	if err != nil {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		fmt.Fprint(w, ApiResponseBadRSAEncryption)
+		http.Error(w, ApiResponseBadRSAEncryption, http.StatusUnprocessableEntity)
 		return
 	}
 
@@ -41,24 +39,23 @@ func validateAndPersistKeys(w http.ResponseWriter, r *http.Request, ps httproute
 	keys, err := parseJsonKeys(jsonPayload)
 	if err != nil {
 		// Bad Json
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, ApiResponseBadJson)
+		http.Error(w, ApiResponseBadJson, http.StatusBadRequest)
 		return
 	}
 
-	// If not goes wrong, persist the keys...
+	// If nothing goes wrong, persist the keys...
 	db := repository.Open("./database.db")
 	defer db.Close()
 
 	if !db.IsAvailable(keys["id"]) {
 		// Id already exists
-		w.WriteHeader(http.StatusConflict)
-		fmt.Fprint(w, ApiResponseDuplicatedId)
+		http.Error(w, ApiResponseDuplicatedId, http.StatusConflict)
 		return
 	}
 
 	db.CreateOrUpdate(keys["id"], keys["enckey"])
 
+	// Success \o/
 	w.WriteHeader(http.StatusNoContent)
 }
 

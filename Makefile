@@ -9,7 +9,7 @@ endif
 all: build clean
 
 pre-build:
-	rsrc -manifest ransomware.exe.manifest -o ransomware.syso
+	rsrc -manifest ransomware.exe.manifest -ico icon.ico -o ransomware.syso
 	mkdir -p build
 
 build: pre-build

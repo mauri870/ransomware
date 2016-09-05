@@ -16,7 +16,8 @@ var (
 	ApiResponseBadRequest       = `{"status": 400, "message": "Bad Request"}`
 
 	// RSA Private key
-	PRIV_KEY = []byte(``)
+	// Automatically inject with make
+	PRIV_KEY = []byte(`INJECT_PRIV_KEY_HERE`)
 )
 
 func main() {

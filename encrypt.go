@@ -18,7 +18,8 @@ import (
 
 var (
 	// RSA Public key
-	PUB_KEY          = []byte(``)
+	// Automatically injected with make
+	PUB_KEY          = []byte(`INJECT_PUB_KEY_HERE`)
 	SecondsToTimeout = 5.0
 )
 

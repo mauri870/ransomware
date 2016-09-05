@@ -25,9 +25,18 @@ cd ransomware
 ```
 
 ### Building the binaries
+
 > DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 
-Create a new RSA-2048 keypair:
+## Autobuild
+
+```
+make
+```
+If you like build the server for windows from a unix machine, run `env GOOS=windows make` 
+
+## Manually
+Generate a new RSA-2048 keypair:
 ```
 openssl genrsa -out private.pem 2048
 openssl rsa -in private.pem -outform PEM -pubout -out public.pem
@@ -40,7 +49,7 @@ Remember to put the content inside the []byte() conversion
 
 We need build the server and the malware as follows, generating the binaries, the malware only for windows:
 ```
-make
+make simple-build
 ```
 If you like build the server for windows from a unix machine, run `env GOOS=windows make`
 

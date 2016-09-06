@@ -68,7 +68,13 @@ When double click on `ransomware.exe` binary it will walk interesting directorie
 
 In theory, for decrypt your files you need send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly will return your encryption key and you can use then to recover your files. This exchange can be accomplished in several ways.
 
-Let's suppose you get your encryption key back (for testing it is on the file on desktop) you can use then on a terminal:
+Let's suppose you get your encryption key back, you can retrieve it pointing to the following url:
+
+```
+curl http://localhost:8080/api/keys/:id
+```
+Where `:id` is your identification stored on the file on desktop. After, run on a terminal:
+
 ```
 ransomware.exe decrypt yourencryptionkeyhere
 ```

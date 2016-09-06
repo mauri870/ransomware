@@ -18,10 +18,10 @@ The malware encrypt with your RSA-2048 public key a payload containing the id/en
 
 ### Installation
 ```
-go get -v github.com/akavel/rsrc
-go get -v github.com/mauri870/ransomware
 git clone https://github.com/mauri870/ransomware.git
+go get -v github.com/akavel/rsrc
 cd ransomware
+go get -d -v
 ```
 
 ### Building the binaries

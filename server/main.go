@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/codegangsta/negroni"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -27,12 +28,27 @@ var (
 )
 
 func main() {
-	router := httprouter.New()
+	// Start the server
+	log.Println("Listening on port 8080")
+	log.Fatal(http.ListenAndServe(":8080", server()))
+}
 
+// Main Server Handler
+func server() http.Handler {
+	n := negroni.Classic()
+	n.Use(negroni.HandlerFunc(addContentTypeHeader))
+
+	router := httprouter.New()
 	router.POST("/api/keys/add", addKeys)
 	router.GET("/api/keys/:id", getEncryptionKey)
 	router.NotFound = http.HandlerFunc(notFound)
 
-	log.Println("Listening on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	n.UseHandler(router)
+	return n
+}
+
+// Add a Content-Type header to response
+func addContentTypeHeader(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+	res.Header().Set("Content-Type", "application/json")
+	next(res, req)
 }

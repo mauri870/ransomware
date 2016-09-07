@@ -12,8 +12,6 @@ import (
 )
 
 func addKeys(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	w.Header().Set("Content-Type", "application/json")
-
 	r.ParseForm()
 
 	// Check if payload parameter exists
@@ -61,8 +59,6 @@ func addKeys(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 }
 
 func getEncryptionKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	w.Header().Set("Content-Type", "application/json")
-
 	id := ps.ByName("id")
 	if len(id) != 32 {
 		http.Error(w, ApiResponseBadRequest, 400)
@@ -83,8 +79,6 @@ func getEncryptionKey(w http.ResponseWriter, r *http.Request, ps httprouter.Para
 }
 
 func notFound(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	http.Error(w, ApiResponseNotFound, http.StatusNotFound)
 	return
 }

@@ -8,7 +8,7 @@
 Ransomware is a type of malware that prevents or limits users from accessing their system, either by locking the system's screen or by locking the users' files unless a ransom is paid. More modern ransomware families, collectively categorized as crypto-ransomware, encrypt certain file types on infected systems and forces users to pay the ransom through certain online payment methods to get a decrypt key.
 
 ### Project Summary
-This project aims to build a "non hidden" crypto-ransomware written in Go. Basically, it will encrypt your files using AES-256-CFB, a strong encryption algorithm, using RSA-2048 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
+This project aims to build a "non hidden" crypto-ransomware for educational purposes, written in Go. Basically, it will encrypt your files using AES-256-CFB, a strong encryption algorithm, using RSA-2048 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
 
 It is composed of two main parts, the server and the malware itself.
 
@@ -18,10 +18,10 @@ The malware encrypt with your RSA-2048 public key a payload containing the id/en
 
 ### Installation
 ```
-go get -v github.com/akavel/rsrc
-go get -v github.com/mauri870/ransomware
 git clone https://github.com/mauri870/ransomware.git
+go get -v github.com/akavel/rsrc
 cd ransomware
+go get -d -v
 ```
 
 ### Building the binaries
@@ -68,7 +68,13 @@ When double click on `ransomware.exe` binary it will walk interesting directorie
 
 In theory, for decrypt your files you need send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly will return your encryption key and you can use then to recover your files. This exchange can be accomplished in several ways.
 
-Let's suppose you get your encryption key back (for testing it is on the file on desktop) you can use then on a terminal:
+Let's suppose you get your encryption key back, you can retrieve it pointing to the following url:
+
+```
+curl http://localhost:8080/api/keys/:id
+```
+Where `:id` is your identification stored on the file on desktop. After, run on a terminal:
+
 ```
 ransomware.exe decrypt yourencryptionkeyhere
 ```

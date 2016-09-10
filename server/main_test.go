@@ -15,10 +15,6 @@ func TestServerHandler(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err != nil {
-		t.Error(err)
-	}
-
 	if res.StatusCode != 404 {
 		t.Error(err)
 	}

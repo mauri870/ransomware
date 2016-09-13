@@ -19,6 +19,9 @@ The server is responsible for store the Id and the respective encryption key, re
 The malware encrypt with your RSA-2048 public key a payload containing the id/enckey generated on runtime, sending then to the server, where it is properly decrypted with the respective RSA private key, and then persisted for future usage.
 
 ### Installation
+
+You need Go at least 1.7
+
 ```
 git clone https://github.com/mauri870/ransomware.git
 go get -v github.com/akavel/rsrc

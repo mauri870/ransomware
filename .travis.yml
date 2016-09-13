@@ -1,0 +1,12 @@
+language: go
+go:
+  - 1.7
+  - tip
+
+before_script:
+  - go get -v github.com/akavel/rsrc
+  - go get -v ./...
+
+script:
+  - go test ./...
+  - make

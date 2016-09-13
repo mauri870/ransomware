@@ -1,5 +1,7 @@
 # Ransomware
 
+[![Build Status](https://travis-ci.org/mauri870/ransomware.svg?branch=master)](https://travis-ci.org/mauri870/ransomware)
+
 > Note: This project is purely academic, use at your own risk. I do not encourage in any way the use of this software illegally or to attack targets without their previous authorization
 
 **Do not criticize me because I'm sharing a malware, the intent here is to disseminate and teach more about security in the actual world. Remember, security is always a double-edged sword**

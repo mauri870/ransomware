@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/mauri870/cryptofile/crypto"
 )
@@ -39,39 +40,48 @@ func decryptFiles(key string) {
 		})
 	}
 
+	// Setup a wait group so we can process all files
+	var wg sync.WaitGroup
+
+	// Set the number of goroutines we need to wait for while
+	// they process the individual files.
+	wg.Add(len(MatchedFiles))
+
 	// Loop over the matched files
 	for _, file := range MatchedFiles {
 		log.Printf("Decrypting %s...\n", file.Path)
 
-		// Read the file content
-		ciphertext, err := ioutil.ReadFile(file.Path)
-		if err != nil {
-			log.Println("Error opening %s\n", file.Path)
-			continue
-		}
+		go func(file File, wg sync.WaitGroup) {
+			// Read the file content
+			ciphertext, err := ioutil.ReadFile(file.Path)
+			if err != nil {
+				log.Println("Error opening %s\n", file.Path)
+			}
 
-		// Decrypting with the key
-		text, err := crypto.Decrypt([]byte(key), ciphertext)
-		if err != nil {
-			// In case of error, continue to the next file
-			log.Println(err)
-			continue
-		}
+			// Decrypting with the key
+			text, err := crypto.Decrypt([]byte(key), ciphertext)
+			if err != nil {
+				log.Println(err)
+			}
 
-		// Write a new file with the decrypted content
-		err = ioutil.WriteFile(file.Path[0:len(file.Path)-len(filepath.Ext(file.Path))], text, 0600)
-		if err != nil {
-			// In case of error, continue to the next file
-			log.Println(err)
-			continue
-		}
+			// Write a new file with the decrypted content
+			err = ioutil.WriteFile(file.Path[0:len(file.Path)-len(filepath.Ext(file.Path))], text, 0600)
+			if err != nil {
+				log.Println(err)
+			}
 
-		// Remove the encrypted file
-		os.Remove(file.Path)
-		if err != nil {
-			log.Println(err)
-		}
+			// Remove the encrypted file
+			os.Remove(file.Path)
+			if err != nil {
+				log.Println(err)
+			}
+		}(file, wg)
 	}
+
+	go func() {
+		// Wait for everything to be processed.
+		wg.Wait()
+	}()
 
 	if len(MatchedFiles) == 0 {
 		log.Println("No encrypted files found")

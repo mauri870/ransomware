@@ -15,10 +15,10 @@ func decryptFiles(key string) {
 	fmt.Println("Note: \nIf you are trying a wrong key your files will be decrypted with broken content irretrievably, please don't try keys randomly\nYou have been warned")
 	fmt.Println("Continue? Y/N")
 
-	var input string
-	fmt.Scanf("%s", &input)
+	var input rune
+	fmt.Scanf("%c", &input)
 
-	if input != "Y" {
+	if input != 'Y' {
 		os.Exit(2)
 	}
 

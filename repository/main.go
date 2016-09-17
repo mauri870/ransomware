@@ -20,7 +20,7 @@ func Open(name string) *Buntdb {
 }
 
 // Find by key
-func (db *Buntdb) Find(key string) (string, error) {
+func (db Buntdb) Find(key string) (string, error) {
 	value := ""
 	err := db.View(func(tx *buntdb.Tx) error {
 		val, err := tx.Get(key)
@@ -42,7 +42,7 @@ func (db *Buntdb) CreateOrUpdate(key string, value string) error {
 }
 
 // Check if a key is available
-func (db *Buntdb) IsAvailable(searchKey string) bool {
+func (db Buntdb) IsAvailable(searchKey string) bool {
 	available := true
 	db.View(func(tx *buntdb.Tx) error {
 		tx.Ascend("", func(key, value string) bool {

@@ -45,7 +45,7 @@ func decryptFiles(key string) {
 		// Read the file content
 		ciphertext, err := ioutil.ReadFile(file.Path)
 		if err != nil {
-			log.Println("Error opening %s\n", file.Path)
+			log.Printf("Error opening %s\n", file.Path)
 			continue
 		}
 

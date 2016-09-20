@@ -25,6 +25,6 @@ func TestNotFound(t *testing.T) {
 	}
 
 	if res.StatusCode != 404 {
-		t.Errorf("Expected %s got %s", 404, res.StatusCode)
+		t.Errorf("Expected %d got %d", 404, res.StatusCode)
 	}
 }

@@ -141,10 +141,8 @@ func encryptFiles() {
 		}(file, &wg)
 	}
 
-	go func() {
-		// Wait for everything to be processed.
-		wg.Wait()
-	}()
+	// Wait for everything to be processed.
+	wg.Wait()
 
 	if len(MatchedFiles) > 0 {
 		message := `

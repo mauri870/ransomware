@@ -32,11 +32,16 @@ func main() {
 			cmd.Usage("Missing decryption key")
 		}
 
-		decryptFiles(os.Args[2])
+		decryptFiles(args[2])
+		break
 	default:
 		cmd.Usage("")
 	}
 
+	// Wait for enter to exit
+	var s string
+	fmt.Println("Press enter to quit")
+	fmt.Scanf("%s", &s)
 }
 
 func decryptFiles(key string) {
@@ -54,52 +59,64 @@ func decryptFiles(key string) {
 	log.Println("Walking dirs and searching for encrypted files...")
 
 	// Loop over the interesting directories
-	for _, f := range cmd.InterestingDirs {
-		folder := cmd.BaseDir + f
-		filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
-			ext := filepath.Ext(path)
-			if ext == cmd.EncryptionExtension {
-				// Matching Files encrypted
-				file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
-				cmd.MatchedFiles = append(cmd.MatchedFiles, file)
-				log.Println("Matched:", path)
+	go func() {
+		for _, f := range cmd.InterestingDirs {
+			folder := cmd.BaseDir + f
+			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
+				ext := filepath.Ext(path)
+				if ext == cmd.EncryptionExtension {
+					// Matching Files encrypted
+					file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+					cmd.MatchedFiles <- file
+					log.Println("Matched:", path)
+				}
+				return nil
+			})
+		}
+		close(cmd.MatchedFiles)
+	}()
+
+	for i := 0; i < cmd.NumWorkers; i++ {
+		go func() {
+			for {
+				select {
+				case file, ok := <-cmd.MatchedFiles:
+					if !ok {
+						cmd.Done <- true
+						return
+					}
+
+					log.Printf("Decrypting %s...\n", file.Path)
+					// Read the file content
+					ciphertext, err := ioutil.ReadFile(file.Path)
+					if err != nil {
+						log.Printf("Error opening %s\n", file.Path)
+						return
+					}
+
+					// Decrypting with the key
+					text, err := crypto.Decrypt([]byte(key), ciphertext)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					// Write a new file with the decrypted content
+					err = ioutil.WriteFile(file.Path[0:len(file.Path)-len(filepath.Ext(file.Path))], text, 0600)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					// Remove the encrypted file
+					os.Remove(file.Path)
+					if err != nil {
+						log.Println(err)
+					}
+				}
 			}
-			return nil
-		})
+		}()
 	}
 
-	// Loop over the matched files
-	for _, file := range cmd.MatchedFiles {
-		log.Printf("Decrypting %s...\n", file.Path)
-		// Read the file content
-		ciphertext, err := ioutil.ReadFile(file.Path)
-		if err != nil {
-			log.Printf("Error opening %s\n", file.Path)
-			continue
-		}
-
-		// Decrypting with the key
-		text, err := crypto.Decrypt([]byte(key), ciphertext)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		// Write a new file with the decrypted content
-		err = ioutil.WriteFile(file.Path[0:len(file.Path)-len(filepath.Ext(file.Path))], text, 0600)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		// Remove the encrypted file
-		os.Remove(file.Path)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-	if len(cmd.MatchedFiles) == 0 {
-		log.Println("No encrypted files found")
-	}
+	<-cmd.Done
 }

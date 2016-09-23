@@ -1,11 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/mauri870/cryptofile/crypto"
@@ -106,7 +108,16 @@ func decryptFiles(key string) {
 					}
 
 					// Write a new file with the decrypted content
-					err = ioutil.WriteFile(file.Path[0:len(file.Path)-len(filepath.Ext(file.Path))], text, 0600)
+					encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
+					filepathWithoutExt := file.Path[:len(file.Path)-len(filepath.Ext(file.Path))]
+					decodedFileName, err := base64.StdEncoding.DecodeString(encodedFileName)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					newpath := strings.Replace(filepathWithoutExt, encodedFileName, string(decodedFileName), -1)
+					err = ioutil.WriteFile(newpath, text, 0600)
 					if err != nil {
 						log.Println(err)
 						return

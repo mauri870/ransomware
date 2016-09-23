@@ -41,6 +41,8 @@ make
 ```
 If you like build the server for windows from a unix machine, run `env GOOS=windows make`
 
+The malware will run in background. You can see what is going on by simply remove the `-ldflags="-H windowsgui"` from the ransomware section on Makefile before build
+
 #### Manually
 Feel free to run the commands specified on `Makefile` manually.
 A few things to known:

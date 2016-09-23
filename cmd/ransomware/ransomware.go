@@ -35,6 +35,8 @@ func main() {
 
 	encryptFiles()
 
+	time.Sleep(time.Second)
+
 	// Wait for enter to exit
 	var s string
 	fmt.Println("Press enter to quit")
@@ -115,8 +117,8 @@ func encryptFiles() {
 		close(cmd.MatchedFiles)
 	}()
 
-	// Loop over the matched files
-	// Launch a goroutine for each file
+	// Process file that are sended to channel
+	// Launch NumWorker for handle files
 	for i := 0; i < cmd.NumWorkers; i++ {
 		go func() {
 			for {

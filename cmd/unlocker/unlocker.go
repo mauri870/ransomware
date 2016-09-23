@@ -20,6 +20,10 @@ func main() {
 
 	args := os.Args
 
+	if len(args) < 2 {
+		cmd.Usage("")
+	}
+
 	switch args[1] {
 	case "-h", "help", "h":
 		cmd.Usage("")

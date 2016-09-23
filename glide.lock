@@ -1,0 +1,32 @@
+hash: 1c1fb2ebf56548b05cfbfc7d020d8dd704176aa145cd512df1fb1acef66a1790
+updated: 2016-09-22T20:16:31.262912027-03:00
+imports:
+- name: github.com/codegangsta/negroni
+  version: fde5e16d32adc7ad637e9cd9ad21d4ebc6192535
+- name: github.com/fatih/color
+  version: 87d4004f2ab62d0d255e0a38f1680aa534549fe3
+- name: github.com/julienschmidt/httprouter
+  version: 8c199fb6259ffc1af525cc3ad52ee60ba8359669
+- name: github.com/mattn/go-colorable
+  version: ed8eb9e318d7a84ce5915b495b7d35e0cfe7b5a8
+- name: github.com/mattn/go-isatty
+  version: 66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8
+- name: github.com/mauri870/cryptofile
+  version: 7a308244c23770026e3d01f835465ec7df4a6b3a
+  subpackages:
+  - crypto
+- name: github.com/tidwall/btree
+  version: bde515e1697379bec1427903e54888babf32513a
+- name: github.com/tidwall/buntdb
+  version: 6cd540fffb4fd5f2417f8d2c80dee8f3174939a5
+- name: github.com/tidwall/gjson
+  version: 2dec1c4e7be3fff111b388536cf94ae23c38add7
+- name: github.com/tidwall/match
+  version: 173748da739a410c5b0b813b956f89ff94730b4c
+- name: github.com/tidwall/rtree
+  version: d4a8a3d30d5729f85edfba1745241f3a621d0359
+- name: golang.org/x/sys
+  version: 30de6d19a3bd89a5f38ae4028e23aaa5582648af
+  subpackages:
+  - unix
+testImports: []

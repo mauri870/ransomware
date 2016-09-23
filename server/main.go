@@ -37,6 +37,7 @@ func main() {
 func server() http.Handler {
 	n := negroni.Classic()
 	n.Use(negroni.HandlerFunc(addContentTypeHeader))
+	n.Use(negroni.HandlerFunc(addCorsHeaders))
 
 	router := httprouter.New()
 	router.POST("/api/keys/add", addKeys)
@@ -50,5 +51,12 @@ func server() http.Handler {
 // Add a Content-Type header to response
 func addContentTypeHeader(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	res.Header().Set("Content-Type", "application/json")
+	next(res, req)
+}
+
+// Add CORS readers to response
+func addCorsHeaders(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+	res.Header().Set("Access-Control-Allow-Origin", "*")
+	res.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	next(res, req)
 }

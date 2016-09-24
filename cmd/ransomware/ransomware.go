@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -76,7 +75,7 @@ func encryptFiles() {
 
 		// Call the server to validate and store the keys
 		data := url.Values{}
-		data.Add("payload", hex.EncodeToString(ciphertext))
+		data.Add("payload", base64.StdEncoding.EncodeToString(ciphertext))
 		res, err := client.CallServer("POST", "/api/keys/add", data)
 		if err != nil {
 			log.Println("The server refuse connection. Aborting...")

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -20,8 +20,8 @@ func addKeys(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		return
 	}
 
-	// Decode the hex string to []byte
-	payload, err := hex.DecodeString(r.FormValue("payload"))
+	// Decode the base64 string to []byte
+	payload, err := base64.StdEncoding.DecodeString(r.FormValue("payload"))
 	if err != nil {
 		http.Error(w, ApiResponseBadRequest, http.StatusBadRequest)
 		return

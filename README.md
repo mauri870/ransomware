@@ -43,6 +43,10 @@ If you like build the server for windows from a unix machine, run `env GOOS=wind
 
 The malware will run in background. You can see what is going on by simply remove the `-ldflags="-H windowsgui"` from the ransomware section on Makefile before build
 
+By default, the server will listen on `localhost:8080`. The client will use this host as the default url too. 
+
+You can put the server on any domain and start it. Simply overwrite the `SERVER_URL` constant on `client/main.go` after build and the malware will try to connect with this url instead
+
 #### Manually
 Feel free to run the commands specified on `Makefile` manually.
 A few things to known:
@@ -52,8 +56,6 @@ A few things to known:
 
 After build, a binary called `ransomware.exe`, `server`/`server.exe` and `unlocker.exe` will be generated on the bin folder. The execution of `ransomware.exe` and `unlocker.exe` (even if it is compiled for linux/darwin) is locked to windows machines only.
 
-By default, the server will listen on `localhost:8080`
-
 > DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
 
 ## Usage and How it Works
@@ -61,7 +63,7 @@ Feel free to edit the parameters across the files for testing.
 Put the binaries on a correct windows test environment, start the server by double click or run then on the terminal.
 It will wait for the malware contact and persist the id/encryption keys
 
-When double click on `ransomware.exe` binary it will running on background, walking interesting directories and encrypting all files that match the interesting file extensions using AES-256-CFB, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.html file on desktop
+When double click on `ransomware.exe` binary it will run on background, walking interesting directories and encrypting all files that match the interesting file extensions using AES-256-CFB, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.html file on desktop
 
 In theory, for decrypt your files you need send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly will return your encryption key and the `unlocker.exe` and you can use then to recover your files. This exchange can be accomplished in several ways.
 

@@ -54,7 +54,7 @@ func addContentTypeHeader(res http.ResponseWriter, req *http.Request, next http.
 	next(res, req)
 }
 
-// Add CORS readers to response
+// Add CORS headers to response
 func addCorsHeaders(res http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
 	res.Header().Set("Access-Control-Allow-Origin", "*")
 	res.Header().Set("Access-Control-Allow-Methods", "GET, POST")

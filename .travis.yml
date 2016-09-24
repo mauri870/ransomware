@@ -5,7 +5,6 @@ go:
 
 before_script:
   - go get -v github.com/akavel/rsrc
-  - go get -v ./...
 
 script:
   - go vet $(go list ./... | grep -v /vendor/)

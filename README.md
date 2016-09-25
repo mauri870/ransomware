@@ -23,7 +23,7 @@ The malware encrypt with your RSA-2048 public key a payload containing the id/en
 You need Go at least 1.7
 
 ```
-git get -v github.com/mauri870/ransomware
+go get -v github.com/mauri870/ransomware
 go get -v github.com/akavel/rsrc
 cd $GOPATH/src/github.com/mauri870/ransomware
 ```

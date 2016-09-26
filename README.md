@@ -23,9 +23,9 @@ The malware encrypt with your RSA-2048 public key a payload containing the id/en
 You need Go at least 1.7
 
 ```
-git clone https://github.com/mauri870/ransomware.git
+go get -v github.com/mauri870/ransomware
 go get -v github.com/akavel/rsrc
-cd ransomware
+cd $GOPATH/src/github.com/mauri870/ransomware
 ```
 > This project uses Glide for vendor management
 

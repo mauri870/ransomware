@@ -13,7 +13,7 @@ var (
 
 	// Directories inside BaseDir to loop over
 	InterestingDirs = []string{
-		"Videos", "Pictures", "Documents", "Music", "Desktop", "Downloads"
+		"Videos", "Pictures", "Documents", "Music", "Desktop", "Downloads",
 	}
 
 	// Interesting extensions to match files

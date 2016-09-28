@@ -13,7 +13,7 @@ var (
 
 	// Directories inside BaseDir to loop over
 	InterestingDirs = []string{
-		"Videos", "Pictures", "Documents", "Music", "Desktop", "Downloads",
+		"Pictures", "Documents", "Music", "Desktop", "Downloads", "Videos",
 	}
 
 	// Interesting extensions to match files
@@ -24,8 +24,6 @@ var (
 		"csv", "pps", "ppt", "pptx",
 		// Audio Files
 		"aif", "iif", "m3u", "m4a", "mid", "mp3", "mpa", "wav", "wma",
-		// Video Files
-		"3gp", "3g2", "avi", "flv", "m4v", "mov", "mp4", "mpg", "vob", "wmv",
 		// 3D Image files
 		"3dm", "3ds", "max", "obj", "blend",
 		// Raster Image Files

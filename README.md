@@ -10,7 +10,7 @@
 Ransomware is a type of malware that prevents or limits users from accessing their system, either by locking the system's screen or by locking the users' files unless a ransom is paid. More modern ransomware families, collectively categorized as crypto-ransomware, encrypt certain file types on infected systems and forces users to pay the ransom through certain online payment methods to get a decrypt key.
 
 ### Project Summary
-This project aims to build an almost functional crypto-ransomware for educational purposes, written in Go. Basically, it will encrypt your files in background using AES-256-CFB, a strong encryption algorithm, using RSA-2048 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
+This project aims to build an almost functional crypto-ransomware for educational purposes, written in Go. Basically, it will encrypt your files in background using AES-256-CTR, a strong encryption algorithm, using RSA-2048 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
 
 It is composed of two main parts, the server and the malware itself.
 
@@ -43,7 +43,7 @@ If you like build the server for windows from a unix machine, run `env GOOS=wind
 
 The malware will run in background. You can see what is going on by simply remove the `-ldflags="-H windowsgui"` from the ransomware section on Makefile before build
 
-By default, the server will listen on `localhost:8080`. The client will use this host as the default url too. 
+By default, the server will listen on `localhost:8080`. The client will use this host as the default url too.
 
 You can put the server on any domain and start it. Simply overwrite the `SERVER_URL` constant on `client/main.go` after build and the malware will try to connect with this url instead
 
@@ -63,7 +63,7 @@ Feel free to edit the parameters across the files for testing.
 Put the binaries on a correct windows test environment, start the server by double click or run then on the terminal.
 It will wait for the malware contact and persist the id/encryption keys
 
-When double click on `ransomware.exe` binary it will run on background, walking interesting directories and encrypting all files that match the interesting file extensions using AES-256-CFB, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.html file on desktop
+When double click on `ransomware.exe` binary it will run on background, walking interesting directories and encrypting all files that match the interesting file extensions using AES-256-CTR and a random IV, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.html file on desktop
 
 In theory, for decrypt your files you need send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly will return your encryption key and the `unlocker.exe` and you can use then to recover your files. This exchange can be accomplished in several ways.
 

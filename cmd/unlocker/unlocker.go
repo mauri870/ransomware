@@ -1,13 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -124,11 +122,12 @@ func decryptFiles(key string) {
 // Decrypt a single file
 func decryptFile(file cmd.File, key string) {
 	// Open the encrypted file
-	ciphertext, err := ioutil.ReadFile(file.Path)
+	inFile, err := os.Open(file.Path)
 	if err != nil {
 		log.Println(err)
 		return
 	}
+	defer inFile.Close()
 
 	// Create a 128 bits cipher.Block for AES-256
 	block, err := aes.NewCipher([]byte(key))
@@ -138,11 +137,11 @@ func decryptFile(file cmd.File, key string) {
 	}
 
 	// Retrieve the iv from the encrypted file
-	iv := ciphertext[:aes.BlockSize]
-	ciphertext = ciphertext[aes.BlockSize:]
+	iv := make([]byte, aes.BlockSize)
+	inFile.Read(iv)
 
+	// Get a stream for encrypt/decrypt in counter mode
 	stream := cipher.NewCTR(block, iv)
-	stream.XORKeyStream(ciphertext, ciphertext)
 
 	encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
 	filepathWithoutExt := file.Path[:len(file.Path)-len(filepath.Ext(file.Path))]
@@ -163,12 +162,17 @@ func decryptFile(file cmd.File, key string) {
 	}
 	defer outFile.Close()
 
-	// Copy the decrypted content to the original file
-	if _, err = io.Copy(outFile, bytes.NewReader(ciphertext)); err != nil {
+	// Open a stream to encrypt and write to output file
+	reader := &cipher.StreamReader{S: stream, R: inFile}
+
+	// Copy the input file to the output file, decrypting as we go.
+	if _, err = io.Copy(outFile, reader); err != nil {
 		log.Println(err)
 		return
 	}
 
+	// Here we need to close the file manually to be able to delete then
+	inFile.Close()
 	err = os.Remove(file.Path)
 	if err != nil {
 		log.Println("Cannot delete original file, skipping...")

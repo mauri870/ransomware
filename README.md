@@ -45,7 +45,7 @@ The malware will run in background. You can see what is going on by simply remov
 
 By default, the server will listen on `localhost:8080`. The client will use this host as the default url too.
 
-You can put the server on any domain and start it. Simply overwrite the `SERVER_URL` constant on `client/main.go` after build and the malware will try to connect with this url instead
+You can put the server on any domain and start it. Simply overwrite the `SERVER_URL` constant on `client/main.go` before build and the malware will try to connect with this url instead
 
 #### Manually
 Feel free to run the commands specified on `Makefile` manually.

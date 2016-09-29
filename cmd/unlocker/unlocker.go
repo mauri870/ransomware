@@ -140,7 +140,7 @@ func decryptFile(file cmd.File, key string) {
 	iv := make([]byte, aes.BlockSize)
 	inFile.Read(iv)
 
-	// Get a stream for encrypt/decrypt in counter mode
+	// Get a stream for encrypt/decrypt in counter mode (best performance I guess)
 	stream := cipher.NewCTR(block, iv)
 
 	encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
@@ -162,7 +162,7 @@ func decryptFile(file cmd.File, key string) {
 	}
 	defer outFile.Close()
 
-	// Open a stream to encrypt and write to output file
+	// Open a stream to decrypt and write to output file
 	reader := &cipher.StreamReader{S: stream, R: inFile}
 
 	// Copy the input file to the output file, decrypting as we go.

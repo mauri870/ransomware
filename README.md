@@ -18,6 +18,14 @@ The server is responsible for store the Id and the respective encryption key, re
 
 The malware encrypt with your RSA-2048 public key a payload containing the id/enckey generated on runtime, sending then to the server, where it is properly decrypted with the respective RSA private key, and then persisted for future usage.
 
+### Project tasks
+
+- [x] Run in Background (or not)
+- [x] Encrypt files using AES-256-CTR(Counter Mode) with random IV for each file
+- [x] Without virus signature (at the moment)
+- [x] Use RSA-2048 to secure the comunication with server
+- [x] Stream encryption to avoid load an entire file into memory
+
 ### Installation
 
 You need Go at least 1.7

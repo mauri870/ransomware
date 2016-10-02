@@ -80,11 +80,8 @@ Let's suppose you get your encryption key back, you can retrieve it pointing to 
 ```
 curl http://localhost:8080/api/keys/:id
 ```
-Where `:id` is your identification stored on the file on desktop. After, run on a terminal:
+Where `:id` is your identification stored on the file on desktop. After, run the `unlocker.exe` by double click and follow the instructions.
 
-```
-unlocker.exe decrypt yourencryptionkeyhere
-```
 And that's it, got your files back :smile:
 
 ## Server endpoints

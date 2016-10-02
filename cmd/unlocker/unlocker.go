@@ -22,25 +22,26 @@ func main() {
 	// Execution locked for windows
 	cmd.CheckOS()
 
-	args := os.Args
-
-	if len(args) < 2 {
-		cmd.Usage("")
-	}
-
-	switch args[1] {
-	case "-h", "help", "h":
-		cmd.Usage("")
-	case "decrypt":
-		if len(args) != 3 {
-			cmd.Usage("Missing decryption key")
+	// Ask for the encryption key
+	var key string
+	for {
+		fmt.Println("Type your encryption key and press enter to proceed")
+		fmt.Scanf("%s\n", &key)
+		if len(key) != 32 {
+			fmt.Println("Your encryption key must have 32 characters")
+			continue
 		}
 
-		decryptFiles(args[2])
 		break
-	default:
-		cmd.Usage("")
 	}
+
+	// Decrypt files
+	decryptFiles(key)
+
+	// Wait for enter to exit
+	fmt.Println("Press enter to quit")
+	var s string
+	fmt.Scanf("%s", &s)
 }
 
 func decryptFiles(key string) {
@@ -50,7 +51,7 @@ func decryptFiles(key string) {
 	fmt.Println("Continue? Y/N")
 
 	var input rune
-	fmt.Scanf("%c", &input)
+	fmt.Scanf("%c\n", &input)
 
 	if input != 'Y' {
 		os.Exit(2)

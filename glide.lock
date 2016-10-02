@@ -1,5 +1,5 @@
-hash: 1c1fb2ebf56548b05cfbfc7d020d8dd704176aa145cd512df1fb1acef66a1790
-updated: 2016-09-30T22:48:31.115261555-03:00
+hash: 43936e33d4c94f02e17984ff6b57dfa464e6deaf0ff0adf67920ba64068b0b96
+updated: 2016-10-02T18:18:25.986380696-03:00
 imports:
 - name: github.com/codegangsta/negroni
   version: fde5e16d32adc7ad637e9cd9ad21d4ebc6192535
@@ -11,14 +11,10 @@ imports:
   version: 6c903ff4aa50920ca86087a280590b36b3152b9c
 - name: github.com/mattn/go-isatty
   version: 66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8
-- name: github.com/mauri870/cryptofile
-  version: 7a308244c23770026e3d01f835465ec7df4a6b3a
-  subpackages:
-  - crypto
 - name: github.com/tidwall/btree
   version: bde515e1697379bec1427903e54888babf32513a
 - name: github.com/tidwall/buntdb
-  version: f6366c8b4b033b388cd68d14a30154e3fdf66d71
+  version: 6dbb18799b3b5b3832b58aaed051fe0ac04df6e9
 - name: github.com/tidwall/gjson
   version: 2dec1c4e7be3fff111b388536cf94ae23c38add7
 - name: github.com/tidwall/match

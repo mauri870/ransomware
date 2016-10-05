@@ -25,7 +25,7 @@ The malware encrypt with your RSA-2048 public key a payload containing the id/en
 - [x] Without virus signature (at the moment)
 - [x] Use RSA-2048 to secure the comunication with server
 - [x] Stream encryption to avoid load an entire file into memory
-- [ ] Link the tor library statically (I got this working on linux, any help with the compilation for windows will be appreciated)
+- [ ] Link the tor library statically (It's already working on linux, any help with the cross compilation to windows will be appreciated) see [feature/tor-link](https://github.com/mauri870/ransomware/tree/feature/tor-link)
 - [ ] Docker image for the server and compilation
 
 ### Installation

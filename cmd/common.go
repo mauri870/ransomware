@@ -12,13 +12,7 @@ var (
 	BaseDir = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))
 
 	// Temp Dir
-	TempDir = func() string {
-		if os.Getenv("TEMP") != "" {
-			return os.Getenv("TEMP")
-		} else {
-			return os.Getenv("USERPROFILE") + `AppData\Local\Temp\`
-		}
-	}()
+	TempDir = fmt.Sprintf("%s\\", os.Getenv("TEMP"))
 
 	// Directories inside BaseDir to loop over
 	InterestingDirs = []string{

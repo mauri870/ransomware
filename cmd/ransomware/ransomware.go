@@ -30,7 +30,7 @@ var (
 	// Time to keep trying persist new keys on server
 	SecondsToTimeout = 5.0
 
-	// Create a slice to store the files to rename before encryption
+	// Create a slice to store the files to rename after encryption
 	FilesToRename []cmd.File
 )
 

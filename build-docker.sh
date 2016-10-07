@@ -16,6 +16,6 @@ fi
 
 docker run --rm -v "$PWD":/go/src/github.com/mauri870/ransomware ransomware "$@"
 
-# We need change the root permissions of the binaries generated
+# We need change the owner of the binaries generated
 echo "Fix binaries permissions..."
 sudo chown -R $USER:$USER ./bin/

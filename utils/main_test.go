@@ -5,11 +5,6 @@ import (
 	"testing"
 )
 
-type Test struct {
-	slice []string
-	word  string
-}
-
 func TestGenerateANString(t *testing.T) {
 	sizes := []int{8, 16, 32, 64}
 	for _, size := range sizes {
@@ -30,7 +25,10 @@ func TestGenerateANString(t *testing.T) {
 }
 
 func TestStringInSlice(t *testing.T) {
-	tests := []Test{
+	tests := []struct {
+		slice []string
+		word  string
+	}{
 		{[]string{"Hello", "World"}, "World"},
 		{[]string{"The", "Quick", "Brown", "Fox"}, "Fox"},
 		{[]string{"Hi"}, "Hello"},

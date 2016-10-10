@@ -1,11 +1,8 @@
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/mauri870/ransomware/cmd"
+	"github.com/mauri870/ransomware/cryptofs"
 )
 
 func init() {
@@ -83,7 +81,7 @@ func decryptFiles(key string) {
 					// Send the file to the MatchedFiles channel then workers
 					// can imediatelly proccess then
 					log.Println("Matched:", path)
-					cmd.MatchedFiles <- cmd.File{FileInfo: f, Extension: ext[1:], Path: path}
+					cmd.MatchedFiles <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
 
 					// For each file we need wait for the respective goroutine to finish
 					wg.Add(1)
@@ -111,8 +109,36 @@ func decryptFiles(key string) {
 
 					log.Printf("Decrypting %s...\n", file.Path)
 
+					encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
+					filepathWithoutExt := file.Path[:len(file.Path)-len(filepath.Ext(file.Path))]
+					decodedFileName, err := base64.StdEncoding.DecodeString(encodedFileName)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					// Get the correct output file name
+					newpath := strings.Replace(filepathWithoutExt, encodedFileName, string(decodedFileName), -1)
+					// Create/Open the output file
+					outFile, err := os.OpenFile(newpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+					defer outFile.Close()
+
 					// Decrypt a single file received from the channel
-					decryptFile(file, key)
+					err = file.Decrypt(key, outFile)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
+
+					// Remove the encrypted file
+					err = os.Remove(file.Path)
+					if err != nil {
+						log.Println(err)
+						continue
+					}
 				}
 			}
 		}()
@@ -120,64 +146,4 @@ func decryptFiles(key string) {
 
 	// Wait for all goroutines to finish
 	wg.Wait()
-}
-
-// Decrypt a single file
-func decryptFile(file cmd.File, key string) {
-	// Open the encrypted file
-	inFile, err := os.Open(file.Path)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer inFile.Close()
-
-	// Create a 128 bits cipher.Block for AES-256
-	block, err := aes.NewCipher([]byte(key))
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Retrieve the iv from the encrypted file
-	iv := make([]byte, aes.BlockSize)
-	inFile.Read(iv)
-
-	// Get a stream for encrypt/decrypt in counter mode (best performance I guess)
-	stream := cipher.NewCTR(block, iv)
-
-	encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
-	filepathWithoutExt := file.Path[:len(file.Path)-len(filepath.Ext(file.Path))]
-	decodedFileName, err := base64.StdEncoding.DecodeString(encodedFileName)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Get the correct output file name
-	newpath := strings.Replace(filepathWithoutExt, encodedFileName, string(decodedFileName), -1)
-
-	// Create/Open the output file
-	outFile, err := os.OpenFile(newpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer outFile.Close()
-
-	// Open a stream to decrypt and write to output file
-	reader := &cipher.StreamReader{S: stream, R: inFile}
-
-	// Copy the input file to the output file, decrypting as we go.
-	if _, err = io.Copy(outFile, reader); err != nil {
-		log.Println(err)
-		return
-	}
-
-	// Here we need to close the file manually to be able to delete then
-	inFile.Close()
-	err = os.Remove(file.Path)
-	if err != nil {
-		log.Println("Cannot delete original file, skipping...")
-	}
 }

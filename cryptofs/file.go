@@ -18,7 +18,7 @@ type File struct {
 
 // Encrypt the file content with AES-CTR with the given key
 // sending then to dst
-func (file *File) Encrypt(enckey string, dst *os.File) error {
+func (file *File) Encrypt(enckey string, dst io.Writer) error {
 	// Open the file read only
 	inFile, err := os.Open(file.Path)
 	if err != nil {
@@ -42,13 +42,13 @@ func (file *File) Encrypt(enckey string, dst *os.File) error {
 	stream := cipher.NewCTR(block, iv)
 
 	// Write the Initialization Vector (iv) as the first block
-	// of the destination file
+	// of the dst writer
 	dst.Write(iv)
 
-	// Open a stream to encrypt and write to destination file
+	// Open a stream to encrypt and write to dst
 	writer := &cipher.StreamWriter{S: stream, W: dst}
 
-	// Copy the input file to the destination file, encrypting as we go.
+	// Copy the input file to the dst writer, encrypting as we go.
 	if _, err = io.Copy(writer, inFile); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (file *File) Encrypt(enckey string, dst *os.File) error {
 
 // Decrypt the file content with AES-CTR with the given key
 // sending then to dst
-func (file *File) Decrypt(key string, dst *os.File) error {
+func (file *File) Decrypt(key string, dst io.Writer) error {
 	// Open the encrypted file
 	inFile, err := os.Open(file.Path)
 	if err != nil {
@@ -79,10 +79,10 @@ func (file *File) Decrypt(key string, dst *os.File) error {
 	// Get a stream for encrypt/decrypt in counter mode (best performance I guess)
 	stream := cipher.NewCTR(block, iv)
 
-	// Open a stream to decrypt and write to output file
+	// Open a stream to decrypt and write to dst
 	reader := &cipher.StreamReader{S: stream, R: inFile}
 
-	// Copy the input file to the destination file, decrypting as we go.
+	// Copy the input file to the dst, decrypting as we go.
 	if _, err = io.Copy(dst, reader); err != nil {
 		return err
 	}

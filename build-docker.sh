@@ -3,7 +3,17 @@ set -e
 
 # Build the image
 echo "Building the image..."
-docker build -t ransomware .
+
+if docker history -q ransomware >/dev/null 2>&1; then
+    read -r -p "The image already exists. Build it again? [y/N] " response
+    case "${response}" in
+        [yY]|[yY][eE][sS])
+            docker build -t ransomware . ;;
+    esac
+else
+    docker build -t ransomware .
+fi
+
 
 # Compile the binaries
 echo "Compiling the binaries..."

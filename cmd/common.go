@@ -51,7 +51,7 @@ var (
 		"cfg", "ini", "prf",
 	}
 
-	// Files to encrypt that match the extensions pattern
+	// Files to encrypt that match the interesting extensions
 	MatchedFiles = make(chan *cryptofs.File)
 
 	// Workers processing the files

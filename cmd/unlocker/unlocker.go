@@ -70,8 +70,7 @@ func decryptFiles(key string) {
 		defer wg.Done()
 
 		// Loop over the interesting directories
-		for _, f := range cmd.InterestingDirs {
-			folder := cmd.BaseDir + f
+		for _, folder := range cmd.InterestingDirs {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
 				ext := filepath.Ext(path)
 				// Matching Files encrypted

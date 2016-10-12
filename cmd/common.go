@@ -11,15 +11,20 @@ import (
 )
 
 var (
-	// Base directory
-	BaseDir = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))
+	// Current user directory
+	UserDir = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))
 
 	// Temp Dir
 	TempDir = fmt.Sprintf("%s\\", os.Getenv("TEMP"))
 
-	// Directories inside BaseDir to loop over
+	// Directories to walk searching for files
 	InterestingDirs = []string{
-		"Pictures", "Documents", "Music", "Desktop", "Downloads", "Videos",
+		UserDir + "Pictures",
+		UserDir + "Documents",
+		UserDir + "Music",
+		UserDir + "Desktop",
+		UserDir + "Downloads",
+		UserDir + "Videos",
 	}
 
 	// Interesting extensions to match files

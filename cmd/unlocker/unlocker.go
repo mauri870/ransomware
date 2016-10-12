@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -56,7 +55,7 @@ func decryptFiles(key string) {
 		os.Exit(2)
 	}
 
-	log.Println("Walking dirs and searching for encrypted files...")
+	cmd.Logger.Println("Walking dirs and searching for encrypted files...")
 
 	// Add a goroutine to the WaitGroup
 	cmd.Indexer.Add(1)
@@ -76,7 +75,7 @@ func decryptFiles(key string) {
 					// Each file is processed by a free worker on the pool.
 					// Send the file to the MatchedFiles channel then workers
 					// can imediatelly proccess then
-					log.Println("Matched:", path)
+					cmd.Logger.Println("Matched:", path)
 					cmd.Indexer.Files <- &cryptofs.File{FileInfo: f, Extension: ext[1:], Path: path}
 
 					// For each file we need wait for the respective goroutine to finish
@@ -103,13 +102,13 @@ func decryptFiles(key string) {
 					}
 					defer cmd.Indexer.Done()
 
-					log.Printf("Decrypting %s...\n", file.Path)
+					cmd.Logger.Printf("Decrypting %s...\n", file.Path)
 
 					encodedFileName := file.Name()[:len(file.Name())-len("."+file.Extension)]
 					filepathWithoutExt := file.Path[:len(file.Path)-len(filepath.Ext(file.Path))]
 					decodedFileName, err := base64.StdEncoding.DecodeString(encodedFileName)
 					if err != nil {
-						log.Println(err)
+						cmd.Logger.Println(err)
 						continue
 					}
 					// Get the correct output file name
@@ -117,7 +116,7 @@ func decryptFiles(key string) {
 					// Create/Open the output file
 					outFile, err := os.OpenFile(newpath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 					if err != nil {
-						log.Println(err)
+						cmd.Logger.Println(err)
 						continue
 					}
 					defer outFile.Close()
@@ -125,14 +124,14 @@ func decryptFiles(key string) {
 					// Decrypt a single file received from the channel
 					err = file.Decrypt(key, outFile)
 					if err != nil {
-						log.Println(err)
+						cmd.Logger.Println(err)
 						continue
 					}
 
 					// Remove the encrypted file
 					err = os.Remove(file.Path)
 					if err != nil {
-						log.Println(err)
+						cmd.Logger.Println(err)
 						continue
 					}
 				}

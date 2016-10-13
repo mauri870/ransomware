@@ -21,9 +21,9 @@ pre-build:
 	mkdir -p $(BIN_DIR)
 
 binaries:
-	cd $(BUILD_DIR)/ransomware && GOOS=windows go build --ldflags "-s -w -H windowsgui" -o $(BIN_DIR)/ransomware.exe
-	cd $(BUILD_DIR)/unlocker && env GOOS=windows go build --ldflags "-s -w" -o $(BIN_DIR)/unlocker.exe
-	cd $(BUILD_DIR)/server && go build && mv `ls|grep server` $(BIN_DIR)
+	cd $(BUILD_DIR)/ransomware && GOOS=windows GOARCH=386 go build --ldflags "-s -w -H windowsgui" -o $(BIN_DIR)/ransomware.exe
+	cd $(BUILD_DIR)/unlocker && GOOS=windows GOARCH=386 go build --ldflags "-s -w" -o $(BIN_DIR)/unlocker.exe
+	cd $(BUILD_DIR)/server && GOARCH=386 go build && mv `ls|grep server` $(BIN_DIR)
 
 build: pre-build binaries
 

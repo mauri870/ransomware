@@ -57,6 +57,9 @@ var (
 		"cfg", "ini", "prf",
 	}
 
+	// Max size allowed to match a file, 20MB by default
+	MaxFileSize = int64(20 * 1e+6)
+
 	// Indexer index files and control goroutines execution
 	Indexer = struct {
 		Files chan *cryptofs.File

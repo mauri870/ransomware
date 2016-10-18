@@ -89,3 +89,25 @@ func (file *File) Decrypt(key string, dst io.Writer) error {
 
 	return nil
 }
+
+func (f *File) ReplaceBy(filename string) error {
+	// Open the file
+	file, err := os.OpenFile(f.Path, os.O_WRONLY|os.O_TRUNC, 0600)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	src, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	// Copy the reader to file
+	if _, err = io.Copy(file, src); err != nil {
+		return err
+	}
+
+	return nil
+}

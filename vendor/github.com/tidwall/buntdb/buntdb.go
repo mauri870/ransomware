@@ -6,7 +6,6 @@ package buntdb
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"io"
 	"os"
@@ -18,6 +17,7 @@ import (
 
 	"github.com/tidwall/btree"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/grect"
 	"github.com/tidwall/match"
 	"github.com/tidwall/rtree"
 )
@@ -247,6 +247,23 @@ type index struct {
 	less    func(a, b string) bool                 // less comparison function
 	rect    func(item string) (min, max []float64) // rect from string function
 	db      *DB                                    // the origin database
+	opts    IndexOptions                           // index options
+}
+
+// match matches the pattern to the key
+func (idx *index) match(key string) bool {
+	if idx.pattern == "*" {
+		return true
+	}
+	if idx.opts.CaseInsensitiveKeyMatching {
+		for i := 0; i < len(key); i++ {
+			if key[i] >= 'A' && key[i] <= 'Z' {
+				key = strings.ToLower(key)
+				break
+			}
+		}
+	}
+	return match.Match(key, idx.pattern)
 }
 
 // clearCopy creates a copy of the index, but with an empty dataset.
@@ -258,6 +275,7 @@ func (idx *index) clearCopy() *index {
 		db:      idx.db,
 		less:    idx.less,
 		rect:    idx.rect,
+		opts:    idx.opts,
 	}
 	// initialize with empty trees
 	if nidx.less != nil {
@@ -281,7 +299,7 @@ func (idx *index) rebuild() {
 	// iterate through all keys and fill the index
 	idx.db.keys.Ascend(func(item btree.Item) bool {
 		dbi := item.(*dbItem)
-		if idx.pattern != "*" && !match.Match(dbi.key, idx.pattern) {
+		if !idx.match(dbi.key) {
 			// does not match the pattern, conintue
 			return true
 		}
@@ -470,7 +488,7 @@ func (db *DB) insertIntoDatabase(item *dbItem) *dbItem {
 		db.exps.ReplaceOrInsert(item)
 	}
 	for _, idx := range db.idxs {
-		if !match.Match(item.key, idx.pattern) {
+		if !idx.match(item.key) {
 			continue
 		}
 		if idx.btr != nil {
@@ -980,7 +998,7 @@ type txWriteContext struct {
 	rollbackIndexes map[string]*index  // details for dropped indexes.
 }
 
-// ClearAll deletes all items from the database.
+// DeleteAll deletes all items from the database.
 func (tx *Tx) DeleteAll() error {
 	if tx.db == nil {
 		return ErrTxClosed
@@ -1745,6 +1763,14 @@ func (tx *Tx) Len() (int, error) {
 	return tx.db.keys.Len(), nil
 }
 
+// IndexOptions provides an index with addtional features or
+// alternate functionality.
+type IndexOptions struct {
+	// CaseInsensitiveKeyMatching allow for case-insensitive
+	// matching on keys when setting key/values.
+	CaseInsensitiveKeyMatching bool
+}
+
 // CreateIndex builds a new index and populates it with items.
 // The items are ordered in an b-tree and can be retrieved using the
 // Ascend* and Descend* methods.
@@ -1762,7 +1788,15 @@ func (tx *Tx) Len() (int, error) {
 // IndexString, IndexBinary, etc.
 func (tx *Tx) CreateIndex(name, pattern string,
 	less ...func(a, b string) bool) error {
-	return tx.createIndex(name, pattern, less, nil)
+	return tx.createIndex(name, pattern, less, nil, nil)
+}
+
+// CreateIndexOptions is the same as CreateIndex except that it allows
+// for additonal options.
+func (tx *Tx) CreateIndexOptions(name, pattern string,
+	opts *IndexOptions,
+	less ...func(a, b string) bool) error {
+	return tx.createIndex(name, pattern, less, nil, opts)
 }
 
 // CreateSpatialIndex builds a new index and populates it with items.
@@ -1781,13 +1815,22 @@ func (tx *Tx) CreateIndex(name, pattern string,
 // parameter.
 func (tx *Tx) CreateSpatialIndex(name, pattern string,
 	rect func(item string) (min, max []float64)) error {
-	return tx.createIndex(name, pattern, nil, rect)
+	return tx.createIndex(name, pattern, nil, rect, nil)
+}
+
+// CreateSpatialIndexOptions is the same as CreateSpatialIndex except that
+// it allows for additonal options.
+func (tx *Tx) CreateSpatialIndexOptions(name, pattern string,
+	opts *IndexOptions,
+	rect func(item string) (min, max []float64)) error {
+	return tx.createIndex(name, pattern, nil, rect, nil)
 }
 
 // createIndex is called by CreateIndex() and CreateSpatialIndex()
 func (tx *Tx) createIndex(name string, pattern string,
 	lessers []func(a, b string) bool,
 	rect func(item string) (min, max []float64),
+	opts *IndexOptions,
 ) error {
 	if tx.db == nil {
 		return ErrTxClosed
@@ -1828,6 +1871,13 @@ func (tx *Tx) createIndex(name string, pattern string,
 	case 1:
 		less = lessers[0]
 	}
+	var sopts IndexOptions
+	if opts != nil {
+		sopts = *opts
+	}
+	if sopts.CaseInsensitiveKeyMatching {
+		pattern = strings.ToLower(pattern)
+	}
 	// intialize new index
 	idx := &index{
 		name:    name,
@@ -1835,6 +1885,7 @@ func (tx *Tx) createIndex(name string, pattern string,
 		less:    less,
 		rect:    rect,
 		db:      tx.db,
+		opts:    sopts,
 	}
 	idx.rebuild()
 	// save the index
@@ -1897,37 +1948,8 @@ func (tx *Tx) Indexes() ([]string, error) {
 // of a rect. IndexRect() is the reverse function and can be used
 // to generate a rect from a string.
 func Rect(min, max []float64) string {
-	if min == nil && max == nil {
-		return ""
-	}
-	diff := len(min) != len(max)
-	if !diff {
-		for i := 0; i < len(min); i++ {
-			if min[i] != max[i] {
-				diff = true
-				break
-			}
-		}
-	}
-	var b bytes.Buffer
-	_ = b.WriteByte('[')
-	for i, v := range min {
-		if i > 0 {
-			_ = b.WriteByte(' ')
-		}
-		_, _ = b.WriteString(strconv.FormatFloat(v, 'f', -1, 64))
-	}
-	if diff {
-		_, _ = b.WriteString("],[")
-		for i, v := range max {
-			if i > 0 {
-				_ = b.WriteByte(' ')
-			}
-			_, _ = b.WriteString(strconv.FormatFloat(v, 'f', -1, 64))
-		}
-	}
-	_ = b.WriteByte(']')
-	return b.String()
+	r := grect.Rect{Min: min, Max: max}
+	return r.String()
 }
 
 // Point is a helper function that converts a series of float64s
@@ -1940,33 +1962,8 @@ func Point(coords ...float64) string {
 // Rect() is the reverse function and can be used to generate a string
 // from a rect.
 func IndexRect(a string) (min, max []float64) {
-	parts := strings.Split(a, ",")
-	for i := 0; i < len(parts) && i < 2; i++ {
-		part := parts[i]
-		if len(part) >= 2 && part[0] == '[' && part[len(part)-1] == ']' {
-			pieces := strings.Split(part[1:len(part)-1], " ")
-			if i == 0 {
-				min = make([]float64, 0, len(pieces))
-			} else {
-				max = make([]float64, 0, len(pieces))
-			}
-			for j := 0; j < len(pieces); j++ {
-				piece := pieces[j]
-				if piece != "" {
-					n, _ := strconv.ParseFloat(piece, 64)
-					if i == 0 {
-						min = append(min, n)
-					} else {
-						max = append(max, n)
-					}
-				}
-			}
-		}
-	}
-	if len(parts) == 1 {
-		max = min
-	}
-	return
+	r := grect.Get(a)
+	return r.Min, r.Max
 }
 
 // IndexString is a helper function that return true if 'a' is less than 'b'.

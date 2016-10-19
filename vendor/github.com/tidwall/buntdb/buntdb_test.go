@@ -144,6 +144,7 @@ func TestSaveLoad(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
 func TestMutatingIterator(t *testing.T) {
 	db := testOpen(t)
 	defer testClose(db)
@@ -181,9 +182,54 @@ func TestMutatingIterator(t *testing.T) {
 		}); err != nil {
 			t.Fatal(err)
 		}
-
 	}
 }
+
+func TestCaseInsensitiveIndex(t *testing.T) {
+	db := testOpen(t)
+	defer testClose(db)
+	count := 1000
+	if err := db.Update(func(tx *Tx) error {
+		opts := &IndexOptions{
+			CaseInsensitiveKeyMatching: true,
+		}
+		return tx.CreateIndexOptions("ages", "User:*:age", opts, IndexInt)
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := db.Update(func(tx *Tx) error {
+		for j := 0; j < count; j++ {
+			key := fmt.Sprintf("user:%d:age", j)
+			val := fmt.Sprintf("%d", rand.Intn(100))
+			if _, _, err := tx.Set(key, val, nil); err != nil {
+				return err
+			}
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := db.View(func(tx *Tx) error {
+		var vals []string
+		err := tx.Ascend("ages", func(key, value string) bool {
+			vals = append(vals, value)
+			return true
+		})
+		if err != nil {
+			return err
+		}
+		if len(vals) != count {
+			return fmt.Errorf("expected '%v', got '%v'", count, len(vals))
+		}
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
 func TestIndexTransaction(t *testing.T) {
 	db := testOpen(t)
 	defer testClose(db)
@@ -823,7 +869,7 @@ func TestVariousTx(t *testing.T) {
 	}
 }
 
-func ExampleDescKeys() {
+func Example_descKeys() {
 	db, _ := Open(":memory:")
 	db.CreateIndex("name", "*", IndexString)
 	db.Update(func(tx *Tx) error {
@@ -1239,7 +1285,7 @@ func TestIndexCompare(t *testing.T) {
 	if Rect(IndexRect("[1 2 3 4]")) != "[1 2 3 4]" {
 		t.Fatalf("expected '%v', got '%v'", "[1 2 3 4]", Rect(IndexRect("[1 2 3 4]")))
 	}
-	if Rect(nil, nil) != "" {
+	if Rect(nil, nil) != "[]" {
 		t.Fatalf("expected '%v', got '%v'", "", Rect(nil, nil))
 	}
 	if Point(1, 2, 3) != "[1 2 3]" {
@@ -1780,9 +1826,9 @@ func TestRectStrings(t *testing.T) {
 	test(t, Rect(IndexRect(Rect(IndexRect("[1 2],[2 2],[3]")))) == "[1 2],[2 2]", true)
 	test(t, Rect(IndexRect(Rect(IndexRect("[1 2]")))) == "[1 2]", true)
 	test(t, Rect(IndexRect(Rect(IndexRect("[1.5 2 4.5 5.6]")))) == "[1.5 2 4.5 5.6]", true)
-	test(t, Rect(IndexRect(Rect(IndexRect("[1.5 2 4.5 5.6 -1],[]")))) == "[1.5 2 4.5 5.6 -1],[]", true)
+	test(t, Rect(IndexRect(Rect(IndexRect("[1.5 2 4.5 5.6 -1],[]")))) == "[1.5 2 4.5 5.6 -1]", true)
 	test(t, Rect(IndexRect(Rect(IndexRect("[]")))) == "[]", true)
-	test(t, Rect(IndexRect(Rect(IndexRect("")))) == "", true)
+	test(t, Rect(IndexRect(Rect(IndexRect("")))) == "[]", true)
 	if err := testRectStringer(nil, nil); err != nil {
 		t.Fatal(err)
 	}
@@ -1801,7 +1847,7 @@ func TestRectStrings(t *testing.T) {
 	if err := testRectStringer([]float64{1, 2, 3, 4}, []float64{5, 6, 7, 8}); err != nil {
 		t.Fatal(err)
 	}
-	if err := testRectStringer([]float64{1, 2, 3, 4, 5}, []float64{6, 7, 8, 9, 0}); err != nil {
+	if err := testRectStringer([]float64{1, 2, 3, 4, 5}, []float64{6, 7, 8, 9, 10}); err != nil {
 		t.Fatal(err)
 	}
 }

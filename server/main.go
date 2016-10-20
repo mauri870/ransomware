@@ -37,12 +37,12 @@ type SimpleResponse struct {
 func main() {
 	// Start the server
 	e := echo.New()
+	e.SetHTTPErrorHandler(CustomHTTPErrorHandler)
 
 	e.Use(middleware.CORS())
 
 	e.POST("/api/keys/add", addKeys)
 	e.GET("/api/keys/:id", getEncryptionKey)
-	e.SetHTTPErrorHandler(CustomHTTPErrorHandler)
 
 	log.Println("Listening on port 8080")
 	e.Run(standard.New(":8080"))
@@ -52,7 +52,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 	httpError, ok := err.(*echo.HTTPError)
 	if ok {
 		// If is an API call return a JSON response
-		path := c.Request().URI()
+		path := c.Request().URL().Path()
 		if !strings.HasSuffix(path, "/") {
 			path = path + "/"
 		}

@@ -39,10 +39,9 @@ func main() {
 	e := echo.New()
 	e.SetHTTPErrorHandler(CustomHTTPErrorHandler)
 
-	e.Use(middleware.CORS())
-
-	e.POST("/api/keys/add", addKeys)
-	e.GET("/api/keys/:id", getEncryptionKey)
+	api := e.Group("/api", middleware.CORS())
+	api.POST("/keys/add", addKeys)
+	api.GET("/keys/:id", getEncryptionKey)
 
 	log.Println("Listening on port 8080")
 	e.Run(standard.New(":8080"))

@@ -1,13 +1,16 @@
 package client
 
 import (
+	"crypto/tls"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"golang.org/x/net/http2"
 )
 
 const (
-	SERVER_URL = "http://localhost:8080"
+	SERVER_URL = "https://localhost:8080"
 )
 
 // Call the server
@@ -19,7 +22,7 @@ func CallServer(method string, endpoint string, data url.Values) (*http.Response
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := &http.Client{}
+	client := &http.Client{Transport: &http2.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	res, err := client.Do(req)
 	if err != nil {
 		return new(http.Response), err

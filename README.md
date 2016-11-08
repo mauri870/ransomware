@@ -24,6 +24,7 @@ The malware encrypt with your RSA-2048 public key a payload containing the id/en
 - [x] Encrypt files using AES-256-CTR(Counter Mode) with random IV for each file
 - [x] Without virus signature (at the moment)
 - [x] Use RSA-2048 to secure the comunication with server
+- [x] HTTPS and HTTP\2 Transport by default
 - [x] Stream encryption to avoid load an entire file into memory
 - [ ] Link the tor library statically (It's already working on linux, any help with the cross compilation to windows will be appreciated) see [issue 3](https://github.com/mauri870/ransomware/issues/3)
 - [x] Docker image for compilation
@@ -82,7 +83,7 @@ In theory, for decrypt your files you need send an amount of BTC to the attacker
 Let's suppose you get your encryption key back, you can retrieve it pointing to the following url:
 
 ```
-curl http://localhost:8080/api/keys/:id
+curl -k https://localhost:8080/api/keys/:id
 ```
 Where `:id` is your identification stored on the file on desktop. After, run the `unlocker.exe` by double click and follow the instructions.
 

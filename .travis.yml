@@ -9,6 +9,10 @@ go:
 before_script:
   - go get -v github.com/akavel/rsrc
 
+matrix:
+  allow_failures:
+    - go: tip  
+
 script:
   - go vet $(go list ./... | grep -v /vendor/)
   - go test $(go list ./... | grep -v /vendor/)

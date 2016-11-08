@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
 )
@@ -39,12 +40,19 @@ func main() {
 	e := echo.New()
 	e.SetHTTPErrorHandler(CustomHTTPErrorHandler)
 
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+
 	api := e.Group("/api", middleware.CORS())
 	api.POST("/keys/add", addKeys)
 	api.GET("/keys/:id", getEncryptionKey)
 
 	log.Println("Listening on port 8080")
-	e.Run(standard.New(":8080"))
+	log.Fatal(e.Run(standard.WithConfig(engine.Config{
+		Address:     ":8080",
+		TLSCertFile: "cert.pem",
+		TLSKeyFile:  "key.pem",
+	})))
 }
 
 func CustomHTTPErrorHandler(err error, c echo.Context) {

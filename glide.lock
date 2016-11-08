@@ -1,10 +1,10 @@
-hash: b5bfb16a9734ad9506da5094e5be2a63b18b6ba721fdc8e55a637bc009ac023d
-updated: 2016-10-19T20:51:18.480931641-02:00
+hash: c4499f6a83a7706603467479eccb289f2f491c05f1c84d172bfaa940085798df
+updated: 2016-11-08T21:01:08.124130256-02:00
 imports:
 - name: github.com/codegangsta/negroni
   version: fde5e16d32adc7ad637e9cd9ad21d4ebc6192535
 - name: github.com/dgrijalva/jwt-go
-  version: 24c63f56522a87ec5339cc3567883f1039378fdb
+  version: 9ed569b5d1ac936e6494082958d63a6aa4fff99a
 - name: github.com/fatih/color
   version: dea9d3a26a087187530244679c1cfb3a42937794
 - name: github.com/julienschmidt/httprouter
@@ -18,14 +18,14 @@ imports:
   - log
   - middleware
 - name: github.com/labstack/gommon
-  version: f3b1a1b3bd4726161e1200863d278df7da5e66ff
+  version: 2d272df536d051e737aea353b86c979d6e88bce0
   subpackages:
   - bytes
   - color
   - log
   - random
 - name: github.com/mattn/go-colorable
-  version: 6c903ff4aa50920ca86087a280590b36b3152b9c
+  version: d228849504861217f796da67fae4f6e347643f15
 - name: github.com/mattn/go-isatty
   version: 66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8
 - name: github.com/stretchr/testify
@@ -35,7 +35,7 @@ imports:
 - name: github.com/tidwall/buntdb
   version: 27d3577d74cea0b53b4261365f08a38eff9671be
 - name: github.com/tidwall/gjson
-  version: 27c108f47598c262a87a2cddc9a49bd0d7c7fadc
+  version: 72b0cad1c18345c48d7ddf5ade1f2c45af35b442
 - name: github.com/tidwall/grect
   version: ba9a043346eba55344e40d66a5e74cfda3a9d293
 - name: github.com/tidwall/match
@@ -48,8 +48,10 @@ imports:
   version: f315505cf3349909cdf013ea56690da34e96a451
   subpackages:
   - context
+  - http2
+  - http2/hpack
 - name: golang.org/x/sys
-  version: 002cbb5f952456d0c50e0d2aff17ea5eca716979
+  version: 9a2e24c3733eddc63871eda99f253e2db29bd3b9
   subpackages:
   - unix
 testImports: []

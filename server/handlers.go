@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -18,14 +17,8 @@ func addKeys(c echo.Context) error {
 		return c.JSON(http.StatusUnprocessableEntity, ApiResponseNoPayload)
 	}
 
-	// Decode the base64 string to []byte
-	payload, err := base64.StdEncoding.DecodeString(payloadValue)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, ApiResponseBadRequest)
-	}
-
 	// Decrypt the payload
-	jsonPayload, err := rsa.Decrypt(PRIV_KEY, payload)
+	jsonPayload, err := rsa.Decrypt(PRIV_KEY, []byte(payloadValue))
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, ApiResponseBadRSAEncryption)
 	}

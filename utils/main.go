@@ -3,6 +3,8 @@ package utils
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"os"
+	"os/user"
 )
 
 // Generate a random alphanumeric string with the given size
@@ -24,4 +26,24 @@ func StringInSlice(search string, slice []string) bool {
 		}
 	}
 	return false
+}
+
+// Return a list containing the letters used by the current drives
+func GetDrives() (letters []string) {
+	for _, drive := range "ABCDEFGHIJKLMNOPQRSTUVWXYZ" {
+		_, err := os.Open(string(drive) + ":\\")
+		if err == nil {
+			letters = append(letters, string(drive)+":\\")
+		}
+	}
+	return
+}
+
+// Return an *os.User instance representing the current user
+func GetCurrentUser() *user.User {
+	usr, err := user.Current()
+	if err != nil {
+		return &user.User{}
+	}
+	return usr
 }

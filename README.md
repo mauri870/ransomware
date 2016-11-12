@@ -26,6 +26,7 @@ The malware encrypt with your RSA-4096 public key a payload containing the id/en
 - [x] Use RSA-4096 to secure the authenticity
 - [x] HTTPS and HTTP\2 Transport by default
 - [x] Stream encryption to avoid load an entire file into memory
+- [x] Walk all drives by default, including usb's and network locations
 - [ ] Lock registry entry with hash digest(maybe SHA-256) to identify an infected victim
 - [ ] Tor or other approach to hide the connection with the C&C [see issue 3](https://github.com/mauri870/ransomware/issues/3)
 - [x] Docker image for compilation

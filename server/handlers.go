@@ -24,15 +24,23 @@ func addKeys(c echo.Context) error {
 	db := repository.Open(Database)
 	defer db.Close()
 
-	if !db.IsAvailable(keys["id"]) {
-		// Id already exists
-		return c.JSON(http.StatusConflict, ApiResponseDuplicatedId)
+	available, err := db.IsAvailable(keys["id"], "keys")
+	if err != nil && err != repository.ErrorBucketNotExists {
+		return c.JSON(http.StatusInternalServerError, ApiResponseInternalError)
 	}
 
-	db.CreateOrUpdate(keys["id"], keys["enckey"])
+	if available || err == repository.ErrorBucketNotExists {
+		err = db.CreateOrUpdate(keys["id"], keys["enckey"], "keys")
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, "")
+		}
 
-	// Success \o/
-	return c.NoContent(http.StatusNoContent)
+		// Success \o/
+		return c.NoContent(http.StatusNoContent)
+	}
+
+	// Id already exists
+	return c.JSON(http.StatusConflict, ApiResponseDuplicatedId)
 }
 
 func getEncryptionKey(c echo.Context) error {
@@ -45,7 +53,7 @@ func getEncryptionKey(c echo.Context) error {
 	db := repository.Open(Database)
 	defer db.Close()
 
-	enckey, err := db.Find(id)
+	enckey, err := db.Find(id, "keys")
 	if err != nil {
 		return c.JSON(http.StatusTeapot, ApiResponseResourceNotFound)
 	}

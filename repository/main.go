@@ -1,58 +1,93 @@
 package repository
 
 import (
+	"errors"
 	"log"
 
-	"github.com/tidwall/buntdb"
+	"github.com/boltdb/bolt"
 )
 
-type Buntdb struct {
-	*buntdb.DB
+var (
+	ErrorBucketNotExists = errors.New("Bucket Not Exists")
+)
+
+type BoltDB struct {
+	*bolt.DB
 }
 
-// Open or create a buntdb database
-func Open(name string) *Buntdb {
-	bunt, err := buntdb.Open(name)
+// Open or create a BoltDB database
+func Open(name string) *BoltDB {
+	db, err := bolt.Open(name, 0600, nil)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	return &Buntdb{bunt}
+	return &BoltDB{db}
 }
 
 // Find by key
-func (db Buntdb) Find(key string) (string, error) {
-	value := ""
-	err := db.View(func(tx *buntdb.Tx) error {
-		val, err := tx.Get(key)
-		if err != nil {
-			return err
+func (db BoltDB) Find(key, bucket string) (string, error) {
+	var value string
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		if b == nil {
+			return ErrorBucketNotExists
 		}
-		value = val
+
+		val := b.Get([]byte(key))
+		value = string(val)
 		return nil
 	})
 	return value, err
 }
 
+// Delete a key from the bucket
+func (db BoltDB) Delete(key, bucket string) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		if b == nil {
+			return ErrorBucketNotExists
+		}
+		return b.Delete([]byte(key))
+	})
+	return err
+}
+
+// Delete a bucket
+func (db BoltDB) DeleteBucket(bucket string) error {
+	err := db.Update(func(tx *bolt.Tx) error {
+		return tx.DeleteBucket([]byte(bucket))
+	})
+	return err
+}
+
 // Create or update a value
-func (db *Buntdb) CreateOrUpdate(key string, value string) error {
-	return db.Update(func(tx *buntdb.Tx) error {
-		_, _, err := tx.Set(key, value, nil)
+func (db *BoltDB) CreateOrUpdate(key, value, bucket string) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists([]byte(bucket))
+		if err != nil {
+			return err
+		}
+
+		err = b.Put([]byte(key), []byte(value))
 		return err
 	})
 }
 
 // Check if a key is available
-func (db Buntdb) IsAvailable(searchKey string) bool {
-	available := true
-	db.View(func(tx *buntdb.Tx) error {
-		tx.Ascend("", func(key, value string) bool {
-			if searchKey == key {
-				available = false
-			}
-			return false
-		})
+func (db BoltDB) IsAvailable(key, bucket string) (bool, error) {
+	available := false
+	err := db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		if b == nil {
+			return ErrorBucketNotExists
+		}
+
+		v := b.Get([]byte(key))
+		if v == nil {
+			available = true
+		}
 		return nil
 	})
 
-	return available
+	return available, err
 }

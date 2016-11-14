@@ -15,6 +15,7 @@ import (
 var (
 	ApiResponseForbidden        = SimpleResponse{Status: http.StatusForbidden, Message: "Seems like you are not welcome here... Bye"}
 	ApiResponseBadJson          = SimpleResponse{Status: http.StatusBadRequest, Message: "Expect valid json payload"}
+	ApiResponseInternalError    = SimpleResponse{Status: http.StatusInternalServerError, Message: "Internal Server Error"}
 	ApiResponseDuplicatedId     = SimpleResponse{Status: http.StatusConflict, Message: "Duplicated Id"}
 	ApiResponseBadRSAEncryption = SimpleResponse{Status: http.StatusUnprocessableEntity, Message: "Error validating payload, bad public key"}
 	ApiResponseNoPayload        = SimpleResponse{Status: http.StatusUnprocessableEntity, Message: "No payload"}

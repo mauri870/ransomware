@@ -1,6 +1,10 @@
-hash: c4499f6a83a7706603467479eccb289f2f491c05f1c84d172bfaa940085798df
-updated: 2016-11-08T21:01:08.124130256-02:00
+hash: a47da7300a7c4610311c7ed0fed90c483ce4d5f44cf7921fa346704275049a63
+updated: 2016-11-14T20:12:14.770026611-02:00
 imports:
+- name: github.com/boltdb/bolt
+  version: 583e8937c61f1af6513608ccc75c97b6abdf4ff9
+  subpackages:
+  - '...'
 - name: github.com/codegangsta/negroni
   version: fde5e16d32adc7ad637e9cd9ad21d4ebc6192535
 - name: github.com/dgrijalva/jwt-go
@@ -10,7 +14,7 @@ imports:
 - name: github.com/julienschmidt/httprouter
   version: 8c199fb6259ffc1af525cc3ad52ee60ba8359669
 - name: github.com/labstack/echo
-  version: 04e6901d05b58ddbae579a6252a3d1bb3f334adc
+  version: e08070379af60f5b9c0fb5bb2d1527ba9624fe43
   subpackages:
   - context
   - engine
@@ -30,18 +34,8 @@ imports:
   version: 66b8e73f3f5cda9f96b69efd03dd3d7fc4a5cdb8
 - name: github.com/stretchr/testify
   version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
-- name: github.com/tidwall/btree
-  version: bde515e1697379bec1427903e54888babf32513a
 - name: github.com/tidwall/buntdb
-  version: 27d3577d74cea0b53b4261365f08a38eff9671be
-- name: github.com/tidwall/gjson
-  version: 72b0cad1c18345c48d7ddf5ade1f2c45af35b442
-- name: github.com/tidwall/grect
-  version: ba9a043346eba55344e40d66a5e74cfda3a9d293
-- name: github.com/tidwall/match
-  version: 173748da739a410c5b0b813b956f89ff94730b4c
-- name: github.com/tidwall/rtree
-  version: d4a8a3d30d5729f85edfba1745241f3a621d0359
+  version: ea417217de77fd78c195b762436eeb6e752c0bf3
 - name: github.com/valyala/fasttemplate
   version: 3b874956e03f1636d171bda64b130f9135f42cff
 - name: golang.org/x/net
@@ -51,7 +45,7 @@ imports:
   - http2
   - http2/hpack
 - name: golang.org/x/sys
-  version: 9a2e24c3733eddc63871eda99f253e2db29bd3b9
+  version: b699b7032584f0953262cb2788a0ca19bb494703
   subpackages:
   - unix
 testImports: []

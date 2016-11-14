@@ -14,3 +14,7 @@ import:
 - package: golang.org/x/net
   subpackages:
   - http2
+- package: github.com/boltdb/bolt
+  version: ^1.3.0
+  subpackages:
+  - '...'

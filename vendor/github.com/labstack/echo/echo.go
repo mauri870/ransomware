@@ -48,8 +48,7 @@ import (
 	"runtime"
 	"sync"
 
-	"golang.org/x/net/context"
-
+	gcontext "github.com/labstack/echo/context"
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/log"
 	glog "github.com/labstack/gommon/log"
@@ -238,13 +237,14 @@ func New() (e *Echo) {
 
 // NewContext returns a Context instance.
 func (e *Echo) NewContext(req engine.Request, res engine.Response) Context {
-	return &echoContext{
-		context:  context.Background(),
-		request:  req,
-		response: res,
-		echo:     e,
-		pvalues:  make([]string, *e.maxParam),
-		handler:  NotFoundHandler,
+	return &context{
+		stdContext: gcontext.Background(),
+		request:    req,
+		response:   res,
+		store:      make(store),
+		echo:       e,
+		pvalues:    make([]string, *e.maxParam),
+		handler:    NotFoundHandler,
 	}
 }
 
@@ -473,7 +473,7 @@ func (e *Echo) add(method, path string, handler HandlerFunc, middleware ...Middl
 			h = middleware[i](h)
 		}
 		return h(c)
-	}, e)
+	})
 	r := Route{
 		Method:  method,
 		Path:    path,
@@ -541,15 +541,15 @@ func (e *Echo) ReleaseContext(c Context) {
 }
 
 func (e *Echo) ServeHTTP(req engine.Request, res engine.Response) {
-	c := e.pool.Get().(*echoContext)
+	c := e.pool.Get().(*context)
 	c.Reset(req, res)
 
 	// Middleware
-	h := func(Context) error {
+	h := func(c Context) error {
 		method := req.Method()
 		path := req.URL().Path()
 		e.router.Find(method, path, c)
-		h := c.handler
+		h := c.Handler()
 		for i := len(e.middleware) - 1; i >= 0; i-- {
 			h = e.middleware[i](h)
 		}

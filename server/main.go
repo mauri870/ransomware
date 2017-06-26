@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/standard"
 	"github.com/labstack/echo/middleware"
-	"github.com/mauri870/ransomware/rsa"
 )
 
 var (
@@ -28,7 +27,7 @@ var (
 	PRIV_KEY = []byte(`INJECT_PRIV_KEY_HERE`)
 
 	// BuntDB Database for store the keys
-	// It will create if not exists
+	// Will be create if not exists
 	Database = "./database.db"
 )
 
@@ -63,7 +62,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 		// If is an API call return a JSON response
 		path := c.Request().URL().Path()
 		if !strings.HasSuffix(path, "/") {
-			path = path + "/"
+			path += "/"
 		}
 
 		if strings.Contains(path, "/api/") {
@@ -73,25 +72,5 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 
 		// Otherwise return the normal response
 		c.String(httpError.Code, httpError.Message)
-	}
-}
-
-// DecryptPayloadMiddleware try to decrypt the payload from request
-func DecryptPayloadMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		// Retrieve the payload from request
-		payload := c.FormValue("payload")
-		if payload == "" {
-			return c.JSON(http.StatusUnprocessableEntity, ApiResponseNoPayload)
-		}
-
-		// Decrypt the payload
-		jsonPayload, err := rsa.Decrypt(PRIV_KEY, []byte(payload))
-		if err != nil {
-			return c.JSON(http.StatusUnprocessableEntity, ApiResponseBadRSAEncryption)
-		}
-
-		c.Set("payload", jsonPayload)
-		return next(c)
 	}
 }

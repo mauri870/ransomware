@@ -35,6 +35,7 @@ func addKeys(c echo.Context) error {
 			return c.JSON(http.StatusInternalServerError, "")
 		}
 
+		c.Logger().Printf("Successfully saved key pair %s - %s", keys["id"], keys["enckey"])
 		// Success \o/
 		return c.NoContent(http.StatusNoContent)
 	}

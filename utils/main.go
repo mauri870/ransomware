@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"os"
 	"os/user"
+	"strings"
 )
 
 // Generate a random alphanumeric string with the given size
@@ -22,6 +23,16 @@ func GenerateRandomANString(size int) (string, error) {
 func StringInSlice(search string, slice []string) bool {
 	for _, v := range slice {
 		if v == search {
+			return true
+		}
+	}
+	return false
+}
+
+// SliceContainsSubstring check if a substring exists on a slice item
+func SliceContainsSubstring(search string, slice []string) bool {
+	for _, v := range slice {
+		if strings.Contains(search, v) {
 			return true
 		}
 	}

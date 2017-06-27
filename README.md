@@ -48,7 +48,7 @@ Done! The binaries live on the bin folder
 
 #### Local
 
-You need Go at least 1.7 with the `$GOPATH/bin` in your $PATH
+You need Go at least 1.8 with the `$GOPATH/bin` in your $PATH
 
 ```
 go get -v github.com/mauri870/ransomware
@@ -66,7 +66,7 @@ If you like build the server for windows from a unix machine, run `env GOOS=wind
 
 ## Usage and How it Works
 
-The malware will run in background. You can see what is going on by simply remove the `-ldflags="-H windowsgui"` from the binaries section on Makefile before build
+The malware will run in background. You can see what is going on commenting the HIDDEN line on Makefile before build
 
 By default, the server will listen on `https://localhost:8080`. The client will use this host as the default url too.
 

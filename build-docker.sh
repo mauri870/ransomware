@@ -5,7 +5,7 @@ set -e
 echo "Building the image..."
 
 if docker history -q ransomware >/dev/null 2>&1; then
-    read -r -p "The image already exists. Build it again? [y/N] " response
+    read -r -p "The image already exists. The project volume mounted can be older. Build it again? [y/N] " response
     case "${response}" in
         [yY]|[yY][eE][sS])
             docker build -t ransomware . ;;

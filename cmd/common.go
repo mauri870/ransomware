@@ -53,7 +53,7 @@ var (
 		// Vector Image files
 		"ai", "eps", "ps", "svg",
 		// Page Layout Files
-		"pdf", "indd", "pct",
+		"pdf", "indd", "pct", "epub",
 		// Spreadsheet Files
 		"xls", "xlr", "xlsx",
 		// Database Files
@@ -63,7 +63,9 @@ var (
 		// Temp Files
 		"bkp", "bak", "tmp",
 		// Config files
-		"cfg", "ini", "prf",
+		"cfg", "conf", "ini", "prf",
+		// Source files
+		"html", "php", "js", "c", "cc", "py", "lua", "go", "java",
 	}
 
 	// Max size allowed to match a file, 20MB by default

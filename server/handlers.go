@@ -9,7 +9,19 @@ import (
 	"github.com/mauri870/ransomware/repository"
 )
 
-func addKeys(c echo.Context) error {
+type Engine struct {
+	*echo.Echo
+	PrivateKey []byte
+}
+
+func NewEngine(privKey []byte) *Engine {
+	return &Engine{
+		Echo:       echo.New(),
+		PrivateKey: privKey,
+	}
+}
+
+func (e *Engine) addKeys(c echo.Context) error {
 	// Get the payload from context
 	payload := c.Get("payload").([]byte)
 
@@ -44,7 +56,7 @@ func addKeys(c echo.Context) error {
 	return c.JSON(http.StatusConflict, ApiResponseDuplicatedId)
 }
 
-func getEncryptionKey(c echo.Context) error {
+func (e *Engine) getEncryptionKey(c echo.Context) error {
 	id := c.Param("id")
 	if len(id) != 32 {
 		return c.JSON(http.StatusBadRequest, ApiResponseBadRequest)

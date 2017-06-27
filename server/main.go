@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strings"
 
+	"io/ioutil"
+
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine"
 	"github.com/labstack/echo/engine/standard"
@@ -22,10 +24,6 @@ var (
 	ApiResponseResourceNotFound = SimpleResponse{Status: http.StatusTeapot, Message: "Resource Not Found"}
 	ApiResponseNotFound         = SimpleResponse{Status: http.StatusNotFound, Message: "Not Found"}
 
-	// RSA Private key
-	// Automatically injected on autobuild with make
-	PRIV_KEY = []byte(`INJECT_PRIV_KEY_HERE`)
-
 	// BuntDB Database for store the keys
 	// Will be create if not exists
 	Database = "./database.db"
@@ -37,16 +35,20 @@ type SimpleResponse struct {
 }
 
 func main() {
-	// Start the server
-	e := echo.New()
+	privkey, err := ioutil.ReadFile("private.pem")
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	e := NewEngine(privkey)
 	e.SetHTTPErrorHandler(CustomHTTPErrorHandler)
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	api := e.Group("/api", middleware.CORS())
-	api.POST("/keys/add", addKeys, DecryptPayloadMiddleware)
-	api.GET("/keys/:id", getEncryptionKey)
+	api.POST("/keys/add", e.addKeys, e.DecryptPayloadMiddleware)
+	api.GET("/keys/:id", e.getEncryptionKey)
 
 	log.Println("Listening on port 8080")
 	log.Fatal(e.Run(standard.WithConfig(engine.Config{

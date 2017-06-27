@@ -8,7 +8,7 @@ import (
 )
 
 // DecryptPayloadMiddleware try to decrypt the payload from request
-func DecryptPayloadMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (e *Engine) DecryptPayloadMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Retrieve the payload from request
 		payload := c.FormValue("payload")
@@ -17,7 +17,7 @@ func DecryptPayloadMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		// Decrypt the payload
-		jsonPayload, err := rsa.Decrypt(PRIV_KEY, []byte(payload))
+		jsonPayload, err := rsa.Decrypt(e.PrivateKey, []byte(payload))
 		if err != nil {
 			c.Logger().Print("Bad payload encryption, rejecting...\n")
 			return c.JSON(http.StatusUnprocessableEntity, ApiResponseBadRSAEncryption)

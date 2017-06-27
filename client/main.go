@@ -10,18 +10,16 @@ import (
 	"golang.org/x/net/http2"
 )
 
-const (
-	SERVER_URL = "https://localhost:8080"
-)
-
 var (
-	// The public key is automatically injected by make
-	PUB_KEY = []byte(`INJECT_PUB_KEY_HERE`)
+	// The public key file is embedded by go-bindata
+	PUB_KEY_FILE = "client/public.pem"
+
+	ServerUrl string
 )
 
 // Call the server
 func CallServer(method string, endpoint string, data url.Values) (*http.Response, error) {
-	req, err := http.NewRequest(method, SERVER_URL+endpoint, strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(method, ServerUrl+endpoint, strings.NewReader(data.Encode()))
 	if err != nil {
 		return new(http.Response), err
 	}
@@ -39,7 +37,12 @@ func CallServer(method string, endpoint string, data url.Values) (*http.Response
 
 // Send an encrypted payload to server
 func SendPayload(endpoint, payload string, data url.Values) (*http.Response, error) {
-	ciphertext, err := rsa.Encrypt(PUB_KEY, []byte(payload))
+	pubkey, err := Asset(PUB_KEY_FILE)
+	if err != nil {
+		return nil, err
+	}
+
+	ciphertext, err := rsa.Encrypt(pubkey, []byte(payload))
 	if err != nil {
 		return &http.Response{}, err
 	}

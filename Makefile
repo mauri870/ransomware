@@ -11,7 +11,7 @@ HIDDEN=-H windowsgui
 LINKER_VARS=-X github.com/mauri870/ransomware/client.ServerURL=$(SERVER_URL)
 
 deps:
-	curl https://glide.sh/get | sh
+	go get -v github.com/Masterminds/glide
 	glide install
 	go get -u github.com/akavel/rsrc \
 		github.com/jteeuwen/go-bindata/...
@@ -28,7 +28,7 @@ pre-build:
 	cp -r cmd/ransomware $(BUILD_DIR)
 	cp -r server $(BUILD_DIR)
 	cp -r cmd/unlocker $(BUILD_DIR)
-	cd $(BUILD_DIR)/server && env GOOS=linux go run /usr/local/go/src/crypto/tls/generate_cert.go --host $(SERVER_HOST)
+	cd $(BUILD_DIR)/server && env GOOS=linux go run $(GOROOT)/src/crypto/tls/generate_cert.go --host $(SERVER_HOST)
 	mkdir -p $(BIN_DIR)
 	mkdir -p $(BIN_DIR)/server
 

@@ -75,7 +75,7 @@ func decryptFiles(key string) {
 				// we doesn't care about the err returned here
 				cmd.Logger.Println("Walking " + path)
 
-				if utils.SliceContainsSubstring(filepath.Base(path), cmd.SkippedDirs) {
+				if f.IsDir() && utils.SliceContainsSubstring(filepath.Base(path), cmd.SkippedDirs) {
 					cmd.Logger.Printf("Skipping dir %s", path)
 					return filepath.SkipDir
 				}

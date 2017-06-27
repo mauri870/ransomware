@@ -8,7 +8,7 @@ PROJECT_DIR = $(shell pwd)
 SERVER_HOST=localhost
 SERVER_URL=https://$(SERVER_HOST):8080
 HIDDEN=-H windowsgui
-LINKER_VARS=-X github.com/mauri870/ransomware/client.ServerUrl=$(SERVER_URL)
+LINKER_VARS=-X github.com/mauri870/ransomware/client.ServerURL=$(SERVER_URL)
 
 deps:
 	curl https://glide.sh/get | sh

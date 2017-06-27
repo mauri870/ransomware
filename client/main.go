@@ -12,14 +12,15 @@ import (
 
 var (
 	// The public key file is embedded by go-bindata
-	PUB_KEY_FILE = "client/public.pem"
+	PubKeyFile = "client/public.pem"
 
-	ServerUrl string
+	// ServerURL is the server base url
+	ServerURL string
 )
 
 // Call the server
 func CallServer(method string, endpoint string, data url.Values) (*http.Response, error) {
-	req, err := http.NewRequest(method, ServerUrl+endpoint, strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(method, ServerURL+endpoint, strings.NewReader(data.Encode()))
 	if err != nil {
 		return new(http.Response), err
 	}
@@ -37,7 +38,7 @@ func CallServer(method string, endpoint string, data url.Values) (*http.Response
 
 // Send an encrypted payload to server
 func SendPayload(endpoint, payload string, data url.Values) (*http.Response, error) {
-	pubkey, err := Asset(PUB_KEY_FILE)
+	pubkey, err := Asset(PubKeyFile)
 	if err != nil {
 		return nil, err
 	}

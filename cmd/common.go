@@ -57,7 +57,7 @@ var (
 		// Spreadsheet Files
 		"xls", "xlr", "xlsx",
 		// Database Files
-		"accdb", "sqlite", "dbf", "mdb", "pdb", "sql",
+		"accdb", "sqlite", "dbf", "mdb", "pdb", "sql", "db",
 		// Game Files
 		"dem", "gam", "nes", "rom", "sav",
 		// Temp Files

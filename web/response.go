@@ -1,16 +1,10 @@
-package main
+package web
 
 import (
-	"log"
 	"net/http"
 	"strings"
 
-	"io/ioutil"
-
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/engine"
-	"github.com/labstack/echo/engine/standard"
-	"github.com/labstack/echo/middleware"
 )
 
 var (
@@ -23,39 +17,11 @@ var (
 	ApiResponseBadRequest       = SimpleResponse{Status: http.StatusBadRequest, Message: "Bad Request"}
 	ApiResponseResourceNotFound = SimpleResponse{Status: http.StatusTeapot, Message: "Resource Not Found"}
 	ApiResponseNotFound         = SimpleResponse{Status: http.StatusNotFound, Message: "Not Found"}
-
-	// BuntDB Database for store the keys
-	// Will be create if not exists
-	Database = "./database.db"
 )
 
 type SimpleResponse struct {
 	Status  int
 	Message string
-}
-
-func main() {
-	privkey, err := ioutil.ReadFile("private.pem")
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	e := NewEngine(privkey)
-	e.SetHTTPErrorHandler(CustomHTTPErrorHandler)
-
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-
-	api := e.Group("/api", middleware.CORS())
-	api.POST("/keys/add", e.addKeys, e.DecryptPayloadMiddleware)
-	api.GET("/keys/:id", e.getEncryptionKey)
-
-	log.Println("Listening on port 8080")
-	log.Fatal(e.Run(standard.WithConfig(engine.Config{
-		Address:     ":8080",
-		TLSCertFile: "cert.pem",
-		TLSKeyFile:  "key.pem",
-	})))
 }
 
 func CustomHTTPErrorHandler(err error, c echo.Context) {

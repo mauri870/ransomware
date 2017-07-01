@@ -70,7 +70,7 @@ The malware will run in background. You can see what is going on commenting the 
 
 By default, the server will listen on `https://localhost:8080`. The client will use this host as the default url too.
 
-You can put the server on any domain and start it. Simply overwrite the `SERVER_URL` constant on `client/main.go` before build and the malware will try to connect with this url instead
+You can put the server on any domain and start it. Simply overwrite the `SERVER_HOST` and `SERVER_PORT` on Makefile before build and the malware will try to connect with this url instead
 
 After build, a binary called `ransomware.exe`, `server`/`server.exe` and `unlocker.exe` will be generated on the bin folder. The execution of `ransomware.exe` and `unlocker.exe` (even if it is compiled for linux/darwin) is locked to windows machines only.
 

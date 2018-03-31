@@ -3,7 +3,7 @@ package rsa
 import (
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -16,7 +16,7 @@ func Encrypt(publicKey []byte, text []byte) ([]byte, error) {
 	pubkey, _ := pubkeyInterface.(*rsa.PublicKey)
 	var out []byte
 
-	out, err = rsa.EncryptOAEP(sha1.New(), rand.Reader, pubkey, text, []byte(""))
+	out, err = rsa.EncryptOAEP(sha256.New(), rand.Reader, pubkey, text, []byte(""))
 	if err != nil {
 		return []byte{}, err
 	}
@@ -50,7 +50,7 @@ func Decrypt(privateKey []byte, ciphertext []byte) ([]byte, error) {
 	var out []byte
 
 	// Decrypt the data
-	out, err = rsa.DecryptOAEP(sha1.New(), rand.Reader, priv, ciphertext, []byte(""))
+	out, err = rsa.DecryptOAEP(sha256.New(), rand.Reader, priv, ciphertext, []byte(""))
 	if err != nil {
 		return []byte{}, err
 	}

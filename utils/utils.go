@@ -88,3 +88,13 @@ func RenameFile(src, dst string) error {
 
 	return nil
 }
+
+// FileExists returns whether the given file or directory exists or not
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+
+	return false
+}

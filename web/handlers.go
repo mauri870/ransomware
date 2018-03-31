@@ -71,3 +71,8 @@ func (e *Engine) GetEncryptionKey(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, fmt.Sprintf(`{"status": 200, "enckey": "%s"}`, enckey))
 }
+
+// Index simply returns a OK
+func (e *Engine) Index(c echo.Context) error {
+	return c.String(http.StatusOK, "OK")
+}

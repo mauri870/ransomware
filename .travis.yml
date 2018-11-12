@@ -1,12 +1,10 @@
 language: go
 go:
-  - "1.8"
-  - "1.9"
-  - "1.10"
+  - "1.11.x"
   - "tip"
 
 env:
-  - GOROOT=/usr/local/go
+  - GO111MODULE=on GOROOT=/usr/local/go
 
 before_script:
   - mkdir -p $GOPATH/bin
@@ -14,7 +12,7 @@ before_script:
 
 matrix:
   allow_failures:
-    - go: tip  
+    - go: tip
 
 script:
   - go vet $(go list ./... | grep -v /vendor/)

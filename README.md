@@ -42,16 +42,22 @@ The malware encrypt with a RSA-4096 (RSA-OAEP-4096 + SHA256) public key any payl
 
 > DON'T RUN ransomware.exe IN YOUR PERSONAL MACHINE, EXECUTE ONLY IN A TEST ENVIRONMENT! I'm not resposible if you acidentally encrypt all of your disks!
 
-First of all download the project:
+First of all download the project outside your $GOPATH:
 
 ```bash
-go get -v github.com/mauri870/ransomware
-cd $GOPATH/src/github.com/mauri870/ransomware
+git clone github.com/mauri870/ransomware
+cd ransomware
 ```
 
 > If you have Docker skip to the next section.
 
-You need Go at least 1.8 with the `$GOPATH/bin` in your $PATH and `$GOROOT` pointing to your Go installation folder
+You need Go at least 1.11.2 with the `$GOPATH/bin` in your $PATH and `$GOROOT` pointing to your Go installation folder. For me:
+
+```bash
+export GOPATH=~/gopath
+export PATH=$PATH:$GOPATH/bin
+export GOROOT=/usr/local/go
+```
 
 Build the project require a lot of steps, like the RSA key generation, build three binaries, embed manifest files, so, let's leave `make` do your job:
 
@@ -59,6 +65,7 @@ Build the project require a lot of steps, like the RSA key generation, build thr
 make deps
 make
 ```
+
 You can build the server for windows with `make -e GOOS=windows`.
 
 #### Docker

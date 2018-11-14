@@ -12,9 +12,8 @@ SERVER_URL=http://$(SERVER_HOST):$(SERVER_PORT)
 LINKER_VARS=-X main.ServerBaseURL=$(SERVER_URL) -X main.UseTor=$(USE_TOR)
 
 deps:
-	go get -v github.com/Masterminds/glide
-	glide install
-	go get -u github.com/akavel/rsrc \
+	go mod download
+	env GO111MODULE=off go get -u github.com/akavel/rsrc \
 		github.com/jteeuwen/go-bindata/...
 
 pre-build: clean-bin

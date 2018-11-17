@@ -24,7 +24,7 @@ if [ $# -eq 0 ]
     exit
 fi
 
-docker run --rm -v "$PWD/bin":/go/src/github.com/mauri870/ransomware/bin ransomware "$@"
+docker run --rm -v "$PWD/bin":/app/bin ransomware "$@"
 
 # We need change the owner of the binaries generated
 echo "Fix binaries permissions..."
